@@ -1,0 +1,604 @@
+.pfp-root {
+  --pfp-max-width: 720px;
+  --pfp-accent: #00a6ff;
+  --pfp-text: #f5f7fa;
+  --pfp-muted-text: rgba(255, 255, 255, 0.64);
+  --pfp-subtle-text: rgba(255, 255, 255, 0.75);
+  --pfp-surface: rgba(24, 24, 27, 0.97);
+  --pfp-toolbar: rgba(16, 16, 18, 0.98);
+  --pfp-border: rgba(255, 255, 255, 0.14);
+  --pfp-divider: rgba(255, 255, 255, 0.1);
+  --pfp-hover: rgba(255, 255, 255, 0.12);
+  --pfp-hint: rgba(255, 255, 255, 0.07);
+  --pfp-stage: #1b1b1d;
+  --pfp-checker: #222326;
+  --pfp-loading-wash: rgba(16, 18, 22, 0.24);
+  --pfp-loading-pill: rgba(19, 21, 25, 0.78);
+  --pfp-loading-pill-border: rgba(255, 255, 255, 0.12);
+  --pfp-key-face: #2a2b30;
+  --pfp-key-border: rgba(255, 255, 255, 0.22);
+  --pfp-key-shadow: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+  position: fixed;
+  inset: auto;
+  z-index: 2147483647;
+  display: flex;
+  width: 322px;
+  max-width: none;
+  max-height: none;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--pfp-text);
+  font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--pfp-surface);
+  border: 1px solid var(--pfp-border);
+  border-radius: 12px;
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.42),
+    0 2px 10px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    width 210ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 110ms ease,
+    visibility 0s linear 110ms;
+  isolation: isolate;
+  box-sizing: border-box;
+}
+
+.pfp-root,
+.pfp-root * {
+  box-sizing: border-box;
+}
+
+.pfp-root.pfp-is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.pfp-root.pfp-is-positioning {
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}
+
+.pfp-root.pfp-no-size-transition {
+  transition: opacity 110ms ease, visibility 0s linear 110ms;
+}
+
+.pfp-root.pfp-is-sticky {
+  touch-action: none;
+  border-color: rgba(0, 150, 250, 0.72);
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(0, 150, 250, 0.2);
+}
+
+.pfp-root .pfp-stage {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: 320px;
+  height: 320px;
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  overflow: hidden;
+  background:
+    linear-gradient(45deg, var(--pfp-checker) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--pfp-checker) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--pfp-checker) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--pfp-checker) 75%),
+    var(--pfp-stage);
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  background-size: 12px 12px;
+  transition:
+    width 210ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 210ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width, height;
+}
+
+.pfp-root .pfp-stage.pfp-has-ready-image {
+  background: var(--pfp-stage);
+}
+
+.pfp-root .pfp-stage.pfp-no-size-transition {
+  transition: none;
+}
+
+.pfp-root .pfp-image-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.pfp-root .pfp-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 50% 50%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.pfp-root .pfp-image-base {
+  opacity: 0;
+  transition: opacity 170ms ease;
+}
+
+.pfp-root .pfp-image-base.pfp-is-ready {
+  opacity: 1;
+}
+
+.pfp-root .pfp-image-placeholder {
+  opacity: 0.58;
+  filter: blur(16px) saturate(0.82);
+  object-fit: cover;
+  transform: scale(1.07);
+  transition: opacity 170ms ease;
+}
+
+.pfp-root .pfp-image-placeholder.pfp-is-hidden {
+  opacity: 0;
+}
+
+.pfp-root .pfp-image-upgrade {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.pfp-root .pfp-image-upgrade.pfp-is-ready {
+  opacity: 1;
+}
+
+.pfp-root .pfp-loading {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--pfp-subtle-text);
+  background: var(--pfp-loading-wash);
+}
+
+.pfp-root .pfp-loading-indicator {
+  display: inline-flex;
+  min-height: 38px;
+  padding: 8px 13px;
+  align-items: center;
+  gap: 9px;
+  background: var(--pfp-loading-pill);
+  border: 1px solid var(--pfp-loading-pill-border);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.pfp-root .pfp-loading-spinner {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  border: 2px solid var(--pfp-border);
+  border-top-color: var(--pfp-accent);
+  border-radius: 50%;
+  animation: pfp-spin 650ms linear infinite;
+}
+
+.pfp-root .pfp-loading-label {
+  white-space: nowrap;
+}
+
+.pfp-root.pfp-is-loading .pfp-loading {
+  display: flex;
+}
+
+.pfp-root .pfp-error {
+  position: absolute;
+  inset: 0;
+  display: none;
+  padding: 28px;
+  align-items: center;
+  justify-content: center;
+  color: var(--pfp-subtle-text);
+  text-align: center;
+}
+
+.pfp-root.pfp-has-error .pfp-error {
+  display: flex;
+}
+
+.pfp-root .pfp-toolbar {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 7px;
+  background: var(--pfp-toolbar);
+  border-top: 1px solid var(--pfp-divider);
+}
+
+.pfp-root [hidden] {
+  display: none !important;
+}
+
+.pfp-root.pfp-is-sticky .pfp-stage,
+.pfp-root.pfp-is-sticky .pfp-toolbar {
+  cursor: grab;
+  user-select: none;
+}
+
+.pfp-root.pfp-is-dragging .pfp-stage,
+.pfp-root.pfp-is-dragging .pfp-toolbar,
+.pfp-root.pfp-is-resizing {
+  cursor: grabbing;
+}
+
+.pfp-root .pfp-status {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--pfp-muted-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pfp-root .pfp-pages {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+}
+
+.pfp-root .pfp-pages[hidden] {
+  display: none;
+}
+
+.pfp-root .pfp-counter {
+  min-width: 42px;
+  color: var(--pfp-subtle-text);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.pfp-root .pfp-button {
+  display: inline-flex;
+  min-width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0 7px;
+  align-items: center;
+  justify-content: center;
+  color: var(--pfp-text);
+  font: inherit;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  outline: 0;
+  cursor: pointer;
+  appearance: none;
+}
+
+.pfp-root .pfp-button:hover,
+.pfp-root .pfp-button:focus-visible {
+  color: var(--pfp-text);
+  background: var(--pfp-hover);
+}
+
+.pfp-root .pfp-button:focus-visible {
+  box-shadow: 0 0 0 2px var(--pfp-accent) inset;
+}
+
+.pfp-root .pfp-button:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.pfp-root .pfp-tools {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  padding-left: 4px;
+  border-left: 1px solid var(--pfp-divider);
+  transition: opacity 120ms ease;
+}
+
+.pfp-root:not(.pfp-is-sticky) .pfp-tools {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.pfp-root:not(.pfp-is-sticky) .pfp-tools .pfp-button {
+  opacity: 1;
+}
+
+.pfp-root .pfp-tools .pfp-button {
+  padding: 0 5px;
+}
+
+.pfp-root .pfp-heart-icon,
+.pfp-root .pfp-open-icon,
+.pfp-root .pfp-nazurin-icon {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.pfp-root .pfp-nazurin-button {
+  position: relative;
+}
+
+.pfp-root .pfp-nazurin-icon {
+  display: block;
+  border-radius: 4px;
+}
+
+.pfp-root .pfp-nazurin-progress {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  display: none;
+  width: 10px;
+  height: 10px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font: 700 8px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #64748b;
+  border: 1px solid var(--pfp-toolbar);
+  border-radius: 50%;
+}
+
+.pfp-root .pfp-nazurin-button[data-state="queued"] .pfp-nazurin-progress,
+.pfp-root .pfp-nazurin-button[data-state="sending"] .pfp-nazurin-progress,
+.pfp-root .pfp-nazurin-button[data-state="accepted"] .pfp-nazurin-progress,
+.pfp-root .pfp-nazurin-button[data-state="error"] .pfp-nazurin-progress {
+  display: inline-flex;
+}
+
+.pfp-root .pfp-nazurin-button[data-state="queued"] .pfp-nazurin-progress::before {
+  content: "…";
+  transform: translateY(-1px);
+}
+
+.pfp-root .pfp-nazurin-button[data-state="sending"] .pfp-nazurin-progress {
+  background: var(--pfp-toolbar);
+  border: 2px solid rgba(0, 166, 255, 0.28);
+  border-top-color: var(--pfp-accent);
+  animation: pfp-spin 650ms linear infinite;
+}
+
+.pfp-root .pfp-nazurin-button[data-state="accepted"] .pfp-nazurin-progress {
+  background: #18a96b;
+}
+
+.pfp-root .pfp-nazurin-button[data-state="accepted"] .pfp-nazurin-progress::before {
+  content: "✓";
+}
+
+.pfp-root .pfp-nazurin-button[data-state="error"] .pfp-nazurin-progress {
+  background: #dc3f55;
+}
+
+.pfp-root .pfp-nazurin-button[data-state="error"] .pfp-nazurin-progress::before {
+  content: "!";
+}
+
+.pfp-root.pfp-is-sticky .pfp-nazurin-button[data-state="queued"]:disabled,
+.pfp-root.pfp-is-sticky .pfp-nazurin-button[data-state="sending"]:disabled {
+  opacity: 1;
+}
+
+.pfp-root .pfp-heart-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.pfp-root .pfp-bookmark-button.pfp-is-bookmarked {
+  color: #ff4060;
+}
+
+.pfp-root .pfp-bookmark-button.pfp-is-bookmarked .pfp-heart-icon {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.pfp-root .pfp-open-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pfp-root .pfp-sticky-hint {
+  display: inline-flex;
+  min-width: 58px;
+  min-height: 28px;
+  padding: 3px 7px 3px 5px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--pfp-muted-text);
+  background: var(--pfp-hint);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.pfp-root.pfp-is-sticky .pfp-sticky-hint {
+  color: var(--pfp-accent);
+  background: rgba(0, 150, 250, 0.16);
+}
+
+.pfp-root .pfp-keycap {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  align-items: center;
+  justify-content: center;
+  color: var(--pfp-text);
+  font: 600 11px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pfp-key-face), white 7%), var(--pfp-key-face));
+  border: 1px solid var(--pfp-key-border);
+  border-radius: 5px;
+  box-shadow: 0 2px 0 var(--pfp-key-shadow);
+}
+
+.pfp-root.pfp-is-sticky .pfp-keycap {
+  border-color: color-mix(in srgb, var(--pfp-accent), transparent 35%);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--pfp-accent), black 55%);
+}
+
+.pfp-root .pfp-close-button {
+  font-size: 20px;
+}
+
+.pfp-root .pfp-resize-handle {
+  position: absolute;
+  z-index: 5;
+  display: none;
+}
+
+.pfp-root.pfp-is-sticky .pfp-resize-handle {
+  display: block;
+}
+
+.pfp-root .pfp-resize-n,
+.pfp-root .pfp-resize-s {
+  right: 12px;
+  left: 12px;
+  height: 7px;
+  cursor: ns-resize;
+}
+
+.pfp-root .pfp-resize-n { top: 0; }
+.pfp-root .pfp-resize-s { bottom: 0; }
+
+.pfp-root .pfp-resize-e,
+.pfp-root .pfp-resize-w {
+  top: 12px;
+  bottom: 12px;
+  width: 7px;
+  cursor: ew-resize;
+}
+
+.pfp-root .pfp-resize-e { right: 0; }
+.pfp-root .pfp-resize-w { left: 0; }
+
+.pfp-root .pfp-resize-ne,
+.pfp-root .pfp-resize-se,
+.pfp-root .pfp-resize-sw,
+.pfp-root .pfp-resize-nw {
+  width: 13px;
+  height: 13px;
+}
+
+.pfp-root .pfp-resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+.pfp-root .pfp-resize-se { right: 0; bottom: 0; cursor: nwse-resize; }
+.pfp-root .pfp-resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.pfp-root .pfp-resize-nw { top: 0; left: 0; cursor: nwse-resize; }
+
+@keyframes pfp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pfp-nazurin-toast {
+  position: fixed;
+  z-index: 2147483647;
+  right: 16px;
+  bottom: 16px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 14px;
+  color: #f5f7fa;
+  font: 600 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: rgba(23, 23, 26, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.34);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 140ms ease, transform 140ms ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.pfp-nazurin-toast.pfp-is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pfp-nazurin-toast[data-tone="success"] {
+  border-color: rgba(24, 169, 107, 0.55);
+}
+
+.pfp-nazurin-toast[data-tone="error"] {
+  border-color: rgba(220, 63, 85, 0.6);
+}
+
+@media (prefers-color-scheme: light) {
+  .pfp-root {
+    --pfp-text: #25272c;
+    --pfp-muted-text: rgba(25, 28, 34, 0.62);
+    --pfp-subtle-text: rgba(25, 28, 34, 0.76);
+    --pfp-surface: rgba(250, 250, 252, 0.97);
+    --pfp-toolbar: rgba(247, 248, 250, 0.98);
+    --pfp-border: rgba(17, 24, 39, 0.15);
+    --pfp-divider: rgba(17, 24, 39, 0.1);
+    --pfp-hover: rgba(17, 24, 39, 0.08);
+    --pfp-hint: rgba(17, 24, 39, 0.065);
+    --pfp-stage: #f2f3f5;
+    --pfp-checker: #e7e9ed;
+    --pfp-loading-wash: rgba(245, 247, 250, 0.2);
+    --pfp-loading-pill: rgba(255, 255, 255, 0.82);
+    --pfp-loading-pill-border: rgba(17, 24, 39, 0.12);
+    --pfp-key-face: #f5f6f8;
+    --pfp-key-border: rgba(17, 24, 39, 0.2);
+    --pfp-key-shadow: rgba(17, 24, 39, 0.25);
+    color-scheme: light;
+    box-shadow:
+      0 18px 48px rgba(30, 41, 59, 0.2),
+      0 2px 10px rgba(30, 41, 59, 0.12);
+  }
+
+  .pfp-nazurin-toast {
+    color: #25272c;
+    background: rgba(250, 250, 252, 0.95);
+    border-color: rgba(17, 24, 39, 0.15);
+    box-shadow: 0 12px 36px rgba(30, 41, 59, 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pfp-root,
+  .pfp-root .pfp-stage,
+  .pfp-root .pfp-image-base,
+  .pfp-root .pfp-image-placeholder,
+  .pfp-root .pfp-image-upgrade {
+    transition: none;
+  }
+
+  .pfp-nazurin-toast {
+    transition: none;
+  }
+
+  .pfp-root .pfp-loading-spinner {
+    animation-duration: 1.2s;
+  }
+}
