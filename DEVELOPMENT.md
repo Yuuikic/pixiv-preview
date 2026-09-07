@@ -22,7 +22,7 @@ npm run package
 
 ### 发布版本
 
-1. 同步更新 `manifest.json` 与 `package.json` 的版本号。README 不维护固定版本号；用户行为变化时同步更新中英文说明。
+1. 运行 `npm run set-version -- X.Y.Z`，统一更新 `manifest.json` 与 `package.json`。设置页通过 `chrome.runtime.getManifest().version` 显示浏览器实际加载的版本；更新后必须在 `chrome://extensions/` 重新加载扩展。README 不维护固定版本号；用户行为变化时同步更新中英文说明。
 2. 运行上述测试、检查和打包命令，检查生成的压缩包。
 3. 提交发布内容，然后创建与清单版本一致的 `vX.Y.Z` 标签并推送到 GitHub。以下命令从清单读取版本；执行前确认 `origin` 指向发布仓库。
 
@@ -56,7 +56,7 @@ Packaging recreates `dist/` and produces `dist/P2-vX.Y.Z.zip`. The archive conta
 
 ### Publish a version
 
-1. Update the version in both `manifest.json` and `package.json`. The READMEs do not track a fixed version; update both languages when user-facing behavior changes.
+1. Run `npm run set-version -- X.Y.Z` to update both `manifest.json` and `package.json`. Settings read the installed version from `chrome.runtime.getManifest().version`; reload the extension at `chrome://extensions/` after updating. The READMEs do not track a fixed version; update both languages when user-facing behavior changes.
 2. Run the test, check, and package commands above, then inspect the archive.
 3. Commit the release changes, create a `vX.Y.Z` tag matching the manifest version, and push to GitHub. The commands below read the version from the manifest. Confirm that `origin` points to the release repository before running them.
 
