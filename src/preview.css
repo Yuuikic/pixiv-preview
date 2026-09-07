@@ -77,6 +77,19 @@
     0 0 0 1px rgba(0, 150, 250, 0.2);
 }
 
+.pfp-root.pfp-is-auto-docked {
+  transition:
+    left 210ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 210ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 210ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 110ms ease,
+    visibility 0s linear 110ms;
+}
+
+.pfp-root.pfp-is-auto-docked.pfp-is-visible {
+  transition-delay: 0s;
+}
+
 .pfp-root .pfp-stage {
   position: relative;
   display: block;

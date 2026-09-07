@@ -13,6 +13,7 @@
   const residueNumber = byId("residue-number");
   const occluded = byId("occluded-switch");
   const original = byId("original-upgrade");
+  const autoArrange = byId("auto-arrange");
   const stickyShortcut = byId("sticky-shortcut");
   const nazurinShortcut = byId("nazurin-shortcut");
   const reset = byId("reset-button");
@@ -152,6 +153,9 @@
   residueNumber.addEventListener("keydown", (event) => { if (event.key === "Enter") residueNumber.blur(); });
   occluded.addEventListener("change", () => saveSync({ [settings.OCCLUDED_SWITCH_STORAGE_KEY]: settings.normalizeOccludedSwitch(occluded.checked) }));
   original.addEventListener("change", () => saveSync({ [settings.ORIGINAL_UPGRADE_STORAGE_KEY]: settings.normalizeOriginalUpgrade(original.checked) }));
+  autoArrange.addEventListener("change", () => saveSync({
+    [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.normalizeAutoArrange(autoArrange.checked)
+  }));
 
   function updateHttpWarning() {
     httpWarning.hidden = !settings.isInsecureRemoteNazurinHost(hostInput.value);
@@ -258,6 +262,7 @@
     displayResidue(settings.DEFAULT_HOVER_RESIDUE_MS);
     occluded.checked = settings.DEFAULT_OCCLUDED_SWITCH_ENABLED;
     original.checked = settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED;
+    autoArrange.checked = settings.DEFAULT_AUTO_ARRANGE_ENABLED;
     updateShortcutUi();
     if (!sync) return showStatus("cannotSave");
     try {
@@ -266,6 +271,7 @@
         [settings.RESIDUE_STORAGE_KEY]: settings.DEFAULT_HOVER_RESIDUE_MS,
         [settings.OCCLUDED_SWITCH_STORAGE_KEY]: settings.DEFAULT_OCCLUDED_SWITCH_ENABLED,
         [settings.ORIGINAL_UPGRADE_STORAGE_KEY]: settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED,
+        [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
         [settings.STICKY_SHORTCUT_STORAGE_KEY]: stickyCode,
         [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: nazurinCode
       });
@@ -280,6 +286,7 @@
         [settings.RESIDUE_STORAGE_KEY]: settings.DEFAULT_HOVER_RESIDUE_MS,
         [settings.OCCLUDED_SWITCH_STORAGE_KEY]: settings.DEFAULT_OCCLUDED_SWITCH_ENABLED,
         [settings.ORIGINAL_UPGRADE_STORAGE_KEY]: settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED,
+        [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
         [settings.STICKY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_STICKY_SHORTCUT_CODE,
         [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_NAZURIN_SHORTCUT_CODE
       }) : {};
@@ -287,6 +294,7 @@
       displayResidue(stored[settings.RESIDUE_STORAGE_KEY]);
       occluded.checked = settings.normalizeOccludedSwitch(stored[settings.OCCLUDED_SWITCH_STORAGE_KEY]);
       original.checked = settings.normalizeOriginalUpgrade(stored[settings.ORIGINAL_UPGRADE_STORAGE_KEY]);
+      autoArrange.checked = settings.normalizeAutoArrange(stored[settings.AUTO_ARRANGE_STORAGE_KEY]);
       stickyCode = settings.normalizeShortcutCode(stored[settings.STICKY_SHORTCUT_STORAGE_KEY], settings.DEFAULT_STICKY_SHORTCUT_CODE);
       nazurinCode = settings.normalizeShortcutCode(stored[settings.NAZURIN_SHORTCUT_STORAGE_KEY], settings.DEFAULT_NAZURIN_SHORTCUT_CODE);
       if (stickyCode === nazurinCode) nazurinCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;

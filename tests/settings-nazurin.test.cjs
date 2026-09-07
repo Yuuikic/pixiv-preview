@@ -50,3 +50,11 @@ test("normalizes configurable single-key shortcuts", () => {
   assert.equal(settings.shortcutCodeLabel("KeyQ"), "Q");
   assert.equal(settings.shortcutCodeLabel("Digit7"), "7");
 });
+
+test("keeps automatic pinned-window arrangement opt-in", () => {
+  assert.equal(settings.DEFAULT_AUTO_ARRANGE_ENABLED, false);
+  assert.equal(settings.normalizeAutoArrange(true), true);
+  for (const value of [false, undefined, null, 1, "true"]) {
+    assert.equal(settings.normalizeAutoArrange(value), false);
+  }
+});

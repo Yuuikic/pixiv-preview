@@ -18,6 +18,10 @@
   const EXIT_CLEANUP_DELAY_MS = 140;
   const TOOLBAR_ESTIMATED_HEIGHT_PX = 43;
   const WINDOW_BORDER_PX = 2;
+  const AUTO_DOCK_CONTENT_GAP_PX = 16;
+  const AUTO_DOCK_WINDOW_GAP_PX = 8;
+  const AUTO_DOCK_MIN_STAGE_WIDTH_PX = 220;
+  const AUTO_DOCK_MAX_STAGE_WIDTH_PX = 360;
   const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
   const NAZURIN_QUEUE_GAP_MS = 1000;
   const ESCAPE_RESTORE_WINDOW_MS = 10000;
@@ -34,6 +38,7 @@
   let hoverResidueMs = settings.DEFAULT_HOVER_RESIDUE_MS;
   let occludedSwitchEnabled = settings.DEFAULT_OCCLUDED_SWITCH_ENABLED;
   let originalUpgradeEnabled = settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED;
+  let autoArrangeEnabled = settings.DEFAULT_AUTO_ARRANGE_ENABLED;
   let stickyShortcutCode = settings.DEFAULT_STICKY_SHORTCUT_CODE;
   let nazurinShortcutCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
   let nazurinEnabled = false;
@@ -348,6 +353,8 @@
         baseStageWidth: 320,
         userScale: 1,
         userResized: false,
+        autoDocked: false,
+        manualPlacement: false,
         preserveTransientPosition: false,
         bookmarkButton: null,
         observedBookmarkButton: null,
@@ -791,6 +798,10 @@
     reposition() {
       if (this.closed || !this.ui.root.classList.contains("pfp-is-visible")) return;
       if (this.sticky || this.preserveTransientPosition) {
+        if (this.sticky && this.autoDocked && autoArrangeEnabled) {
+          this.manager.scheduleAutoArrange();
+          return;
+        }
         this.clampToViewport();
         return;
       }
@@ -874,6 +885,27 @@
       this.clampToViewport();
     }
 
+    applyAutoDockGeometry(left, top, stageWidth, stageHeight) {
+      if (this.closed || !this.sticky) return;
+      this.autoDocked = true;
+      this.manualPlacement = false;
+      this.userResized = true;
+      this.userScale = stageWidth / this.baseStageWidth;
+      this.ui.root.classList.add("pfp-is-auto-docked");
+      this.ui.root.style.right = "auto";
+      this.ui.root.style.left = `${Math.round(left)}px`;
+      this.ui.root.style.top = `${Math.round(top)}px`;
+      this.ui.root.style.width = `${stageWidth + WINDOW_BORDER_PX}px`;
+      this.ui.stage.style.width = `${stageWidth}px`;
+      this.ui.stage.style.height = `${stageHeight}px`;
+    }
+
+    releaseAutoDocking({ manual = false } = {}) {
+      this.autoDocked = false;
+      if (manual) this.manualPlacement = true;
+      this.ui.root.classList.remove("pfp-is-auto-docked");
+    }
+
     updateControls() {
       const pageCount = this.metadata?.pages.length ?? 1;
       this.ui.counter.textContent = pageCount > 1 ? `${this.pageIndex + 1} / ${pageCount}` : "";
@@ -898,6 +930,7 @@
     handleWheel(event) {
       if (!this.sticky || Math.abs(event.deltaY) < 1) return;
       event.preventDefault();
+      this.releaseAutoDocking({ manual: true });
       this.manager.bringToFront(this);
       const stageRect = this.ui.stage.getBoundingClientRect();
       const ratio = stageRect.width / stageRect.height;
@@ -933,6 +966,7 @@
       if (!this.sticky) this.manager.pinWindowFromClick(this, { suppressTools: true });
       if (!this.sticky) return;
       event.preventDefault();
+      this.releaseAutoDocking({ manual: true });
       this.manager.bringToFront(this);
       const rootRect = this.ui.root.getBoundingClientRect();
       const startX = event.clientX;
@@ -958,6 +992,7 @@
       if (!this.sticky || event.button !== 0) return;
       event.preventDefault();
       event.stopPropagation();
+      this.releaseAutoDocking({ manual: true });
       this.manager.bringToFront(this);
       const rootRect = this.ui.root.getBoundingClientRect();
       const stageRect = this.ui.stage.getBoundingClientRect();
@@ -1055,7 +1090,8 @@
 
     handleResizeObserved() {
       if (this.closed || !this.ui.root.classList.contains("pfp-is-visible")) return;
-      if (this.sticky) this.clampToViewport();
+      if (this.sticky && this.autoDocked && autoArrangeEnabled) return;
+      else if (this.sticky) this.clampToViewport();
       else this.reposition();
     }
 
@@ -1123,6 +1159,7 @@
       this.nazurinToastTimer = 0;
       this.escapeHistory = null;
       this.escapeHistoryTimer = 0;
+      this.autoArrangeFrame = 0;
     }
 
     beginHover(candidate) {
@@ -1301,10 +1338,13 @@
       if (existing && existing !== preview) this.closeWindow(existing);
       this.pinnedByIllustId.set(preview.illustId, preview);
       this.bringToFront(preview);
+      this.scheduleAutoArrange();
     }
 
     registerUnpinned(preview) {
       if (this.pinnedByIllustId.get(preview.illustId) === preview) this.pinnedByIllustId.delete(preview.illustId);
+      preview.releaseAutoDocking();
+      this.scheduleAutoArrange();
       if (this.hoverWindow && this.hoverWindow !== preview) this.closeWindow(this.hoverWindow);
       this.hoverWindow = preview;
       this.hoverCandidate = {
@@ -1354,6 +1394,7 @@
         }, null) || this.hoverWindow || null;
       }
       preview.close();
+      this.scheduleAutoArrange();
     }
 
     closeAll({ cancelNazurin = false } = {}) {
@@ -1431,6 +1472,7 @@
         preview.clampToViewport();
       }
       this.activeWindow = restoredActive || this.topmostWindow();
+      this.scheduleAutoArrange();
       return true;
     }
 
@@ -1464,6 +1506,129 @@
 
     allWindows() {
       return [...new Set([...(this.hoverWindow ? [this.hoverWindow] : []), ...this.pinnedByIllustId.values()])];
+    }
+
+    scheduleAutoArrange({ includeManual = false } = {}) {
+      if (!autoArrangeEnabled) return;
+      if (includeManual) {
+        for (const preview of this.pinnedByIllustId.values()) preview.manualPlacement = false;
+      }
+      if (this.autoArrangeFrame) cancelAnimationFrame(this.autoArrangeFrame);
+      this.autoArrangeFrame = requestAnimationFrame(() => {
+        this.autoArrangeFrame = 0;
+        this.arrangePinnedWindows();
+      });
+    }
+
+    stopAutoArrange() {
+      if (this.autoArrangeFrame) cancelAnimationFrame(this.autoArrangeFrame);
+      this.autoArrangeFrame = 0;
+      for (const preview of this.pinnedByIllustId.values()) preview.releaseAutoDocking();
+    }
+
+    visibleArtworkBounds() {
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = document.documentElement.clientHeight;
+      const rectangles = [];
+      for (const anchor of document.querySelectorAll('a[href*="/artworks/"]')) {
+        if (!extractIllustId(anchor)) continue;
+        for (const image of anchor.querySelectorAll("img")) {
+          const rect = image.getBoundingClientRect();
+          if (rect.width < MIN_ARTWORK_SIZE_PX || rect.height < MIN_ARTWORK_SIZE_PX ||
+              rect.right <= 0 || rect.left >= viewportWidth || rect.bottom <= 0 || rect.top >= viewportHeight) continue;
+          rectangles.push(rect);
+        }
+      }
+      if (!rectangles.length) return null;
+      return {
+        left: Math.max(0, Math.min(...rectangles.map((rect) => rect.left))),
+        right: Math.min(viewportWidth, Math.max(...rectangles.map((rect) => rect.right)))
+      };
+    }
+
+    arrangePinnedWindows() {
+      if (!autoArrangeEnabled) return;
+      const previews = [...this.pinnedByIllustId.values()].filter((preview) =>
+        !preview.closed && preview.sticky && !preview.manualPlacement
+      );
+      if (!previews.length) return;
+
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = document.documentElement.clientHeight;
+      const artworkBounds = this.visibleArtworkBounds();
+      const minimumLaneWidth = AUTO_DOCK_MIN_STAGE_WIDTH_PX + WINDOW_BORDER_PX;
+      const lanes = artworkBounds ? [
+        { side: "left", left: VIEWPORT_MARGIN_PX,
+          width: artworkBounds.left - AUTO_DOCK_CONTENT_GAP_PX - VIEWPORT_MARGIN_PX, items: [], load: 0 },
+        { side: "right", left: artworkBounds.right + AUTO_DOCK_CONTENT_GAP_PX,
+          width: viewportWidth - artworkBounds.right - AUTO_DOCK_CONTENT_GAP_PX - VIEWPORT_MARGIN_PX,
+          items: [], load: 0 }
+      ].filter((lane) => lane.width >= minimumLaneWidth) : [];
+
+      if (!lanes.length) {
+        for (const preview of previews) {
+          preview.releaseAutoDocking();
+          preview.clampToViewport();
+        }
+        return;
+      }
+
+      for (const preview of previews) {
+        const stageRect = preview.ui.stage.getBoundingClientRect();
+        const page = preview.metadata?.pages[preview.pageIndex];
+        const dimensions = preview.pageDimensions(page);
+        const declaredRatio = page ? dimensions.width / dimensions.height : 0;
+        const ratio = Number.isFinite(declaredRatio) && declaredRatio > 0
+          ? declaredRatio
+          : stageRect.width > 0 && stageRect.height > 0 ? stageRect.width / stageRect.height : 1;
+        const rootRect = preview.ui.root.getBoundingClientRect();
+        const centerX = rootRect.left + rootRect.width / 2;
+        const lane = lanes.reduce((best, candidate) => {
+          const candidateDistance = Math.abs(centerX - (candidate.left + candidate.width / 2));
+          const bestDistance = Math.abs(centerX - (best.left + best.width / 2));
+          return candidate.load < best.load - 0.01 ||
+            (Math.abs(candidate.load - best.load) <= 0.01 && candidateDistance < bestDistance)
+            ? candidate : best;
+        });
+        lane.items.push({ preview, ratio: Number.isFinite(ratio) && ratio > 0 ? ratio : 1 });
+        lane.load += 1 / (Number.isFinite(ratio) && ratio > 0 ? ratio : 1);
+      }
+
+      const availableHeight = viewportHeight - VIEWPORT_MARGIN_PX * 2;
+      for (const lane of lanes) {
+        if (!lane.items.length) continue;
+        const chromeHeights = lane.items.map(({ preview }) => {
+          const rootRect = preview.ui.root.getBoundingClientRect();
+          const stageRect = preview.ui.stage.getBoundingClientRect();
+          return Math.max(TOOLBAR_ESTIMATED_HEIGHT_PX + WINDOW_BORDER_PX, rootRect.height - stageRect.height);
+        });
+        const chromeTotal = chromeHeights.reduce((sum, height) => sum + height, 0);
+        const gapTotal = AUTO_DOCK_WINDOW_GAP_PX * Math.max(0, lane.items.length - 1);
+        const widthForHeight = (availableHeight - chromeTotal - gapTotal) /
+          lane.items.reduce((sum, item) => sum + 1 / item.ratio, 0);
+        const maximumStageWidth = Math.min(AUTO_DOCK_MAX_STAGE_WIDTH_PX, lane.width - WINDOW_BORDER_PX);
+        const individuallyFittedMinimum = Math.min(AUTO_DOCK_MIN_STAGE_WIDTH_PX,
+          ...lane.items.map((item, index) =>
+            Math.max(1, (availableHeight - chromeHeights[index]) * item.ratio)
+          ));
+        const stageWidth = Math.max(individuallyFittedMinimum,
+          Math.min(maximumStageWidth, widthForHeight));
+        const rootHeights = lane.items.map((item, index) =>
+          stageWidth / item.ratio + chromeHeights[index]
+        );
+        const totalHeight = rootHeights.reduce((sum, height) => sum + height, 0) + gapTotal;
+        const overlapStep = lane.items.length > 1 && totalHeight > availableHeight
+          ? Math.max(32, (availableHeight - rootHeights.at(-1)) / (lane.items.length - 1))
+          : null;
+        let top = VIEWPORT_MARGIN_PX;
+        lane.items.forEach(({ preview, ratio }, index) => {
+          const stageHeight = rootHeights[index] - chromeHeights[index];
+          const rootWidth = stageWidth + WINDOW_BORDER_PX;
+          const left = lane.side === "left" ? lane.left : lane.left + lane.width - rootWidth;
+          preview.applyAutoDockGeometry(left, top, stageWidth, stageHeight);
+          top += overlapStep ?? rootHeights[index] + AUTO_DOCK_WINDOW_GAP_PX;
+        });
+      }
     }
 
     topmostWindow(windows = this.allWindows()) {
@@ -1669,6 +1834,7 @@
         if (page && !preview.userResized) preview.applyPageSize(page, { animate: false });
         preview.reposition();
       }
+      this.scheduleAutoArrange();
     }
   }
 
@@ -1688,6 +1854,7 @@
           [settings.RESIDUE_STORAGE_KEY]: settings.DEFAULT_HOVER_RESIDUE_MS,
           [settings.OCCLUDED_SWITCH_STORAGE_KEY]: settings.DEFAULT_OCCLUDED_SWITCH_ENABLED,
           [settings.ORIGINAL_UPGRADE_STORAGE_KEY]: settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED,
+          [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
           [settings.STICKY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_STICKY_SHORTCUT_CODE,
           [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_NAZURIN_SHORTCUT_CODE
         });
@@ -1695,6 +1862,7 @@
         hoverResidueMs = settings.normalizeHoverResidue(stored[settings.RESIDUE_STORAGE_KEY]);
         occludedSwitchEnabled = settings.normalizeOccludedSwitch(stored[settings.OCCLUDED_SWITCH_STORAGE_KEY]);
         originalUpgradeEnabled = settings.normalizeOriginalUpgrade(stored[settings.ORIGINAL_UPGRADE_STORAGE_KEY]);
+        autoArrangeEnabled = settings.normalizeAutoArrange(stored[settings.AUTO_ARRANGE_STORAGE_KEY]);
         stickyShortcutCode = settings.normalizeShortcutCode(
           stored[settings.STICKY_SHORTCUT_STORAGE_KEY], settings.DEFAULT_STICKY_SHORTCUT_CODE
         );
@@ -1706,6 +1874,7 @@
         hoverResidueMs = settings.DEFAULT_HOVER_RESIDUE_MS;
         occludedSwitchEnabled = settings.DEFAULT_OCCLUDED_SWITCH_ENABLED;
         originalUpgradeEnabled = settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED;
+        autoArrangeEnabled = settings.DEFAULT_AUTO_ARRANGE_ENABLED;
         stickyShortcutCode = settings.DEFAULT_STICKY_SHORTCUT_CODE;
         nazurinShortcutCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
       }
@@ -1727,6 +1896,11 @@
       if (changes[settings.ORIGINAL_UPGRADE_STORAGE_KEY]) {
         originalUpgradeEnabled = settings.normalizeOriginalUpgrade(changes[settings.ORIGINAL_UPGRADE_STORAGE_KEY].newValue);
         for (const preview of manager.allWindows()) preview.applyOriginalSetting();
+      }
+      if (changes[settings.AUTO_ARRANGE_STORAGE_KEY]) {
+        autoArrangeEnabled = settings.normalizeAutoArrange(changes[settings.AUTO_ARRANGE_STORAGE_KEY].newValue);
+        if (autoArrangeEnabled) manager.scheduleAutoArrange({ includeManual: true });
+        else manager.stopAutoArrange();
       }
       if (changes[settings.STICKY_SHORTCUT_STORAGE_KEY]) {
         stickyShortcutCode = settings.normalizeShortcutCode(

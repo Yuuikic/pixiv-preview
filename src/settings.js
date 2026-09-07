@@ -5,6 +5,7 @@
   const RESIDUE_STORAGE_KEY = "hoverResidueMs";
   const OCCLUDED_SWITCH_STORAGE_KEY = "switchOccludedArtwork";
   const ORIGINAL_UPGRADE_STORAGE_KEY = "upgradeToOriginal";
+  const AUTO_ARRANGE_STORAGE_KEY = "autoArrangePinnedWindows";
   const NAZURIN_API_HOST_STORAGE_KEY = "nazurinApiHost";
   const NAZURIN_API_TOKEN_STORAGE_KEY = "nazurinApiToken";
   const NAZURIN_VERIFIED_STORAGE_KEY = "nazurinConnectionVerified";
@@ -14,6 +15,7 @@
   const DEFAULT_HOVER_RESIDUE_MS = 500;
   const DEFAULT_OCCLUDED_SWITCH_ENABLED = true;
   const DEFAULT_ORIGINAL_UPGRADE_ENABLED = false;
+  const DEFAULT_AUTO_ARRANGE_ENABLED = false;
   const MIN_HOVER_DELAY_MS = 100;
   const MAX_HOVER_DELAY_MS = 3000;
   const HOVER_DELAY_STEP_MS = 50;
@@ -35,6 +37,10 @@
   }
 
   function normalizeOriginalUpgrade(value) {
+    return value === true;
+  }
+
+  function normalizeAutoArrange(value) {
     return value === true;
   }
 
@@ -108,6 +114,7 @@
     RESIDUE_STORAGE_KEY,
     OCCLUDED_SWITCH_STORAGE_KEY,
     ORIGINAL_UPGRADE_STORAGE_KEY,
+    AUTO_ARRANGE_STORAGE_KEY,
     NAZURIN_API_HOST_STORAGE_KEY,
     NAZURIN_API_TOKEN_STORAGE_KEY,
     NAZURIN_VERIFIED_STORAGE_KEY,
@@ -117,6 +124,7 @@
     DEFAULT_HOVER_RESIDUE_MS,
     DEFAULT_OCCLUDED_SWITCH_ENABLED,
     DEFAULT_ORIGINAL_UPGRADE_ENABLED,
+    DEFAULT_AUTO_ARRANGE_ENABLED,
     MIN_HOVER_DELAY_MS,
     MAX_HOVER_DELAY_MS,
     HOVER_DELAY_STEP_MS,
@@ -130,6 +138,7 @@
     normalizeHoverResidue,
     normalizeOccludedSwitch,
     normalizeOriginalUpgrade,
+    normalizeAutoArrange,
     normalizeNazurinApiHost,
     normalizeNazurinApiToken,
     buildNazurinApiEndpoint,

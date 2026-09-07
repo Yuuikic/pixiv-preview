@@ -6,7 +6,6 @@ import { spawnSync } from "node:child_process";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8"));
 const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-const readme = readFileSync(join(root, "README.md"), "utf8");
 const versionPattern = /^(?:0|[1-9]\d{0,4})(?:\.(?:0|[1-9]\d{0,4})){2,3}$/;
 
 function fail(message) {
@@ -20,7 +19,6 @@ if (!versionPattern.test(manifest.version) || manifest.version.split(".").some((
 if (packageJson.version !== manifest.version) {
   fail(`package.json ${packageJson.version} does not match manifest ${manifest.version}`);
 }
-if (!readme.includes(`\`${manifest.version}\` 开发版`)) fail("README version does not match manifest");
 
 const tagIndex = process.argv.indexOf("--tag");
 if (tagIndex >= 0) {

@@ -38,6 +38,18 @@ test("content script contains the keyboard and queue safety contracts", () => {
   assert.match(source, /discardEscapeHistory\(\)/);
 });
 
+test("automatic pinned-window arrangement is wired through settings and edge-lane layout", () => {
+  const source = read("src/content.js");
+  assert.match(source, /settings\.AUTO_ARRANGE_STORAGE_KEY/);
+  assert.match(source, /visibleArtworkBounds\(\)/);
+  assert.match(source, /arrangePinnedWindows\(\)/);
+  assert.match(source, /AUTO_DOCK_CONTENT_GAP_PX/);
+  assert.match(source, /releaseAutoDocking\(\{ manual: true \}\)/);
+  assert.match(read("popup/popup.html"), /id="auto-arrange"/);
+  assert.match(read("options/options.html"), /id="auto-arrange"/);
+  assert.match(read("src/preview.css"), /\.pfp-root\.pfp-is-auto-docked/);
+});
+
 test("the bundled Nazurin icon is the expected 48px PNG", () => {
   const data = fs.readFileSync(path.join(root, "assets/nazurin-48.png"));
   assert.deepEqual([...data.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
