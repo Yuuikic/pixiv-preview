@@ -2,7 +2,9 @@
 
 [简体中文](README.md) · English
 
-<img src="assets/icon.png" width="128" alt="P² logo">
+<p align="center">
+  <img src="assets/icon.png" width="128" alt="P² logo">
+</p>
 
 <p align="center">A lightweight hover preview extension for Pixiv.</p>
 

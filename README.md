@@ -2,7 +2,9 @@
 
 简体中文 · [English](README.en.md)
 
-<img src="assets/icon.png" width="128" alt="P² logo">
+<p align="center">
+  <img src="assets/icon.png" width="128" alt="P² logo">
+</p>
 
 <p align="center">轻量的 Pixiv 作品悬停预览扩展</p>
 
