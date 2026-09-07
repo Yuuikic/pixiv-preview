@@ -10,7 +10,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("manifest keeps Nazurin access optional and avoids expansive API permissions", () => {
   const manifest = JSON.parse(read("manifest.json"));
-  assert.equal(manifest.version, "0.11.0");
+  assert.equal(manifest.version, JSON.parse(read("package.json")).version);
   assert.equal(manifest.name, "__MSG_extensionName__");
   assert.equal(manifest.default_locale, "en");
   assert.equal(manifest.options_page, "options/options.html");
