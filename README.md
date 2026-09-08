@@ -1,12 +1,11 @@
 # P² — PixivPreview
 
-简体中文 · [English](README.en.md)
-
 <p align="center">
   <img src="assets/icon.png" width="128" alt="P² logo">
 </p>
 
 <p align="center">轻量的 Pixiv 作品悬停预览扩展</p>
+<p align="center">简体中文 · [English](README.en.md)</p>
 
 P²（P squared）是一个用于预览 Pixiv 作品的 Chrome 扩展，特别支持使用 [Nazurin](https://github.com/y-young/nazurin) 收藏图片的工作流。
 
