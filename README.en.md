@@ -74,7 +74,7 @@ General settings save automatically and take effect immediately. The settings in
 If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, P² can submit entire Pixiv artworks to it. Nazurin is not required for previews, page navigation, or pinned windows.
 
 1. Open P² settings and expand **Nazurin**.
-2. Enter your service’s **API Host** and **Bot Token** (Telegram Bot Token). Use HTTPS for remote services to avoid sending credentials in plain text.
+2. Enter your service’s **API Host** and **Bot Token** (Telegram Bot Token). Remote services must use HTTPS. HTTP is allowed only for a local service on `localhost` or `127.0.0.1`.
 3. Click **Save** and grant access to that service address.
 4. Click **Test connection**. The Nazurin button and shortcuts become available only after a successful test. Test again after changing the configuration.
 
@@ -85,6 +85,8 @@ If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, 
 | `Shift+D` | Submit artworks from all pinned windows in the current tab, one after another |
 
 If you change the submission shortcut, use `Shift` with the new key for batch submission. Multi-image works are submitted as a whole, not just the displayed image. Artworks already queued or being submitted are not added again. You can retry failures manually; navigating in the current tab cancels submissions that have not started.
+
+The Nazurin host and Bot Token are stored only on this device. When you submit by button or keyboard, P² sends only the canonical Pixiv artwork URL to that service; it does not send Pixiv cookies, login credentials, or image data. Saving the configuration requests access to that host. How Nazurin downloads, stores, and retains content depends on the user's own service configuration.
 
 **“Submitted to Nazurin” means the service accepted the request, not that the download is complete.** Nazurin handles downloading and saving. Check Telegram messages for the final result.
 
@@ -112,7 +114,7 @@ If you change the submission shortcut, use `Shift` with the new key for batch su
 
 ## Privacy and license
 
-P² runs only on Pixiv pages and does not collect analytics or browsing history. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
+P² runs only on Pixiv pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information and settings on the device. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
 
 [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 

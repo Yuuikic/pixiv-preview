@@ -74,7 +74,7 @@ P²（P squared）是一个用于预览 Pixiv 作品的 Chrome 扩展，特别�
 如果你已有自己的 **[Nazurin](https://github.com/y-young/nazurin) 服务**，可以从 P² 提交整个 Pixiv 作品。没有 Nazurin 也不影响预览、翻页和留驻功能。
 
 1. 打开 P² 设置，展开 **Nazurin**。
-2. 填写服务的 **API Host** 和 **Bot Token**（Telegram Bot Token）。远程服务建议使用 HTTPS，避免凭据明文传输。
+2. 填写服务的 **API Host** 和 **Bot Token**（Telegram Bot Token）。远程服务必须使用 HTTPS；仅本机的 `localhost` 或 `127.0.0.1` 服务可以使用 HTTP。
 3. 点击“保存”，批准该服务地址的访问权限。
 4. 点击“测试连接”。测试成功后，Nazurin 按钮和快捷键才会启用；修改配置后需要重新测试。
 
@@ -85,6 +85,8 @@ P²（P squared）是一个用于预览 Pixiv 作品的 Chrome 扩展，特别�
 | `Shift+D` | 依次提交当前标签页中全部留驻窗口的作品 |
 
 如果更改了提交快捷键，批量提交使用 `Shift` 加新按键。多页作品会整部提交，不只提交当前图片。排队或提交中的作品不会重复加入；失败后可手动重试，当前标签页跳转会取消尚未提交的项目。
+
+Nazurin Host 和 Bot Token 只保存在当前设备。点击或按键提交时，P² 只向该服务发送规范的 Pixiv 作品链接，不发送 Pixiv Cookie、登录凭据或图片数据；保存配置时会请求该 Host 的访问权限。Nazurin 会如何下载、保存和保留内容，取决于用户自己的服务配置。
 
 **“已提交到 Nazurin”只代表服务已接受请求，并不表示下载完成。** 下载和保存由 Nazurin 完成，最终结果请以 Telegram 消息为准。
 
@@ -112,7 +114,7 @@ P²（P squared）是一个用于预览 Pixiv 作品的 Chrome 扩展，特别�
 
 ## 隐私与许可
 
-P² 只在 Pixiv 页面运行，不收集分析数据或浏览历史。一般预览设置可通过 Chrome 同步；Nazurin 地址和 Token 仅保存在本地。只有配置 Nazurin 时才会请求对应服务的访问权限，清除配置也会移除该权限。
+P² 只在 Pixiv 页面运行，不收集分析数据，也不会把用户数据发送给开发者。扩展会在本机处理当前 Pixiv 作品信息和设置；一般预览设置可通过 Chrome 同步，Nazurin 地址和 Token 仅保存在本地。只有配置 Nazurin 时才会请求对应服务的访问权限，清除配置也会移除该权限。
 
 [隐私政策](PRIVACY.md) · [MIT 许可证](LICENSE) · [第三方资源声明](THIRD_PARTY_NOTICES.md)
 

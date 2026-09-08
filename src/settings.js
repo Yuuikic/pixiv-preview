@@ -62,7 +62,9 @@
     if (typeof value !== "string") return null;
     try {
       const url = new URL(value.trim());
-      if ((url.protocol !== "https:" && url.protocol !== "http:") || !url.hostname ||
+      const isLoopbackHttp = url.protocol === "http:" &&
+        ["localhost", "127.0.0.1"].includes(url.hostname);
+      if ((url.protocol !== "https:" && !isLoopbackHttp) || !url.hostname ||
           url.username || url.password || url.search || url.hash) return null;
       if (!url.pathname.endsWith("/")) url.pathname += "/";
       return url.href;
@@ -90,11 +92,14 @@
   }
 
   function isInsecureRemoteNazurinHost(host) {
-    const normalizedHost = normalizeNazurinApiHost(host);
-    if (!normalizedHost) return false;
-    const url = new URL(normalizedHost);
-    if (url.protocol !== "http:") return false;
-    return !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (typeof host !== "string") return false;
+    try {
+      const url = new URL(host.trim());
+      return url.protocol === "http:" &&
+        !["localhost", "127.0.0.1"].includes(url.hostname);
+    } catch {
+      return false;
+    }
   }
 
   function normalizeShortcutCode(value, fallback) {

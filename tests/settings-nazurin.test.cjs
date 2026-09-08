@@ -20,6 +20,10 @@ test("normalizes the Nazurin host while preserving a configured base path", () =
     "https://example.test/nazurin/");
   assert.equal(settings.getNazurinPermissionPattern("https://example.test/nazurin/"),
     "https://example.test/*");
+  assert.equal(settings.normalizeNazurinApiHost("http://localhost:8080/nazurin"),
+    "http://localhost:8080/nazurin/");
+  assert.equal(settings.normalizeNazurinApiHost("http://127.0.0.1:8080/"),
+    "http://127.0.0.1:8080/");
 });
 
 test("builds token paths safely even when a token contains a colon", () => {
@@ -31,7 +35,10 @@ test("rejects credentials that could escape or alter the endpoint", () => {
   for (const token of ["", "white space", "a/b", "a\\b", "a?b", "a#b", "a&b", "a=b", "a%2Fb"]) {
     assert.equal(settings.normalizeNazurinApiToken(token), null, token);
   }
-  for (const host of ["javascript:alert(1)", "https://user:pass@example.test/", "https://example.test/?x=1"]) {
+  for (const host of [
+    "javascript:alert(1)", "https://user:pass@example.test/", "https://example.test/?x=1",
+    "http://example.test/", "http://192.0.2.1/"
+  ]) {
     assert.equal(settings.normalizeNazurinApiHost(host), null, host);
   }
 });
