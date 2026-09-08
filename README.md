@@ -6,7 +6,7 @@
 
 <p align="center">轻量的 Pixiv 作品悬停预览扩展</p>
 
-<p align="center">简体中文 · <a href="https://github.com/Yuuikic/pixiv-preview/blob/main/README.en.md">English</a></p>
+<p align="center">简体中文 · <a href="README.en.md">English</a></p>
 
 P²（P squared）是一个用于预览 Pixiv 作品的 Chrome 扩展，特别支持使用 [Nazurin](https://github.com/y-young/nazurin) 收藏图片的工作流。
 
@@ -24,7 +24,7 @@ P²（P squared）是一个用于预览 Pixiv 作品的 Chrome 扩展，特别�
 2. 在 Chrome 地址栏打开 `chrome://extensions/`。
 3. 打开右上角的“开发者模式”，点击“加载已解压的扩展程序”。
 4. 选择解压后包含 `manifest.json` 的文件夹，不要选择 ZIP 文件。
-5. 打开或刷新 Pixiv 页面，即可开始使用。
+5. 打开或刷新 Pixiv 页面，即可开始使用。·
 
 **更新时**，将新版文件解压并替换到原安装文件夹，在 `chrome://extensions/` 点击 P² 的“重新加载”，然后刷新所有已打开的 Pixiv 标签页。设置页顶部可查看当前加载的版本。
 
