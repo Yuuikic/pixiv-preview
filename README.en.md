@@ -6,7 +6,7 @@
 
 <p align="center">A lightweight hover preview extension for Pixiv.</p>
 
-<p align="center"><a href="/">简体中文</a> · English</p>
+<p align="center"><a href="README.md">简体中文</a> · English</p>
 
 P² (P squared) is a Chrome extension for previewing Pixiv artworks, with dedicated support for collecting images through [Nazurin](https://github.com/y-young/nazurin). 
 
