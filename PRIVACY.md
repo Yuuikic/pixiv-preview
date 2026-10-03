@@ -27,8 +27,9 @@ service as described below. P² does not collect analytics or telemetry.
   Nazurin service. P² does not send Pixiv cookies, Pixiv login credentials, or
   image data to Nazurin. The Bot Token is used only to construct the endpoint
   required by the user's Nazurin service.
-- On Twitter/X pages, P² reads the hovered tweet's permalink from the page
-  only when the user presses the submission shortcut, and sends its canonical
+- On Twitter/X pages, P² reads the hovered tweet's permalink from the page,
+  or the current photo viewer's tweet URL from the address bar, only when
+  the user presses the submission shortcut, and sends its canonical
   Twitter URL to the configured Nazurin service. It does not request tweet
   metadata or image resources, or send Twitter/X cookies, credentials, tweet
   text, or image data. Pending links are held only in memory for the queue.

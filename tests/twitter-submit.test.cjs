@@ -52,6 +52,7 @@ function harness({ shortcut = "KeyD", response = { ok: true, status: "accepted" 
   }
   return {
     calls, notices, article,
+    navigate(url) { context.location.href = url; },
     hover(target) { hovered = target; events.pointermove({ clientX: 50, clientY: 60 }); },
     setTarget(target) { hovered = target; },
     focus(target) { focused = target; },
@@ -97,6 +98,54 @@ test("shortcut resolves the tweet currently under the pointer, without stale hov
   assert.equal(h.calls[0].tweetUrl, "https://twitter.com/b/status/2");
   h.setTarget(null);
   assert.equal(h.key().prevented, undefined);
+});
+
+test("photo viewer submits the URL's tweet from images, empty space, or hovered replies", async () => {
+  for (const host of ["x.com", "www.x.com", "twitter.com", "www.twitter.com"]) {
+    for (const area of ["no-pointer", "image", "empty-space", "reply"]) {
+      const h = harness();
+      h.navigate(`https://${host}/artist/status/444/photo/2?s=20#media`);
+      if (area === "reply") h.hover(h.article([{ href: "https://x.com/replier/status/555", time: true }]));
+      if (area === "image") h.hover({ closest: () => null });
+      if (area === "empty-space") h.hover(null);
+      assert.equal(h.key().prevented, true, `${host}: ${area}`);
+      await h.flush();
+      assert.equal(h.calls.length, 1);
+      assert.equal(h.calls[0].tweetUrl, "https://twitter.com/artist/status/444");
+    }
+  }
+});
+
+test("photo viewer follows SPA URL changes and restores hover selection when closed", async () => {
+  const h = harness();
+  h.hover(h.article([{ href: "https://x.com/replier/status/555", time: true }]));
+  h.navigate("https://x.com/artist/status/444/photo/1");
+  h.key(); await h.flush();
+  h.navigate("https://x.com/artist/status/444/photo/3");
+  h.key(); await h.gap();
+  h.navigate("https://x.com/another/status/666/photo/1");
+  h.key(); await h.gap();
+  h.navigate("https://x.com/artist/status/444");
+  h.key(); await h.gap();
+  assert.deepEqual(h.calls.map((call) => call.tweetUrl), [
+    "https://twitter.com/artist/status/444", "https://twitter.com/artist/status/444",
+    "https://twitter.com/another/status/666", "https://twitter.com/replier/status/555"
+  ]);
+  h.navigate("https://x.com/home");
+  h.setTarget(null);
+  assert.equal(h.key().prevented, undefined);
+});
+
+test("photo viewer still ignores typing, composition, modifiers, and held keys", () => {
+  const h = harness();
+  h.navigate("https://x.com/artist/status/444/photo/1");
+  for (const flag of ["ctrlKey", "metaKey", "altKey", "shiftKey", "repeat", "isComposing", "defaultPrevented"]) {
+    assert.equal(h.key({ [flag]: true }).prevented, undefined);
+  }
+  assert.equal(h.key({ target: { closest: () => ({}) } }).prevented, undefined);
+  h.focus({ closest: () => ({}) });
+  assert.equal(h.key().prevented, undefined);
+  assert.equal(h.calls.length, 0);
 });
 
 test("ignores typing, composition, modifiers, held keys, absent tweets, and leaving the page", () => {

@@ -94,11 +94,15 @@ The Nazurin host and Bot Token are stored only on this device. When you submit b
 
 ### Twitter/X tweet shortcut
 
+**This feature is experimental. Please do not rely on it too heavily. It may be removed in future versions, or it may be retained.**
+
 On `x.com` or `twitter.com`, hover a tweet's text, image, timestamp, or another part of its card and press `D` to submit its link to the same Nazurin service. If you customized the submission shortcut, use that key instead. Save your Nazurin configuration and pass the connection test first.
 
 This feature submits links without previewing or downloading images. Hovering a quote card submits the outer tweet; retweets submit the original tweet. Rapid submissions are queued in order, with duplicates suppressed while pending. A notification at the bottom right shows the result; press again to retry a failure. Typing, modified shortcuts, and held keys do not trigger submissions. `Shift+D` batch submission is available only on Pixiv.
 
 Links are normalized to `https://twitter.com/username/status/tweetID`, without tracking parameters or image numbers. Downloading depends on your Nazurin server's Twitter configuration. After updating, reload the extension at `chrome://extensions/` and refresh your open Twitter/X tabs.
+
+In Twitter/X's photo viewer (`/username/status/tweetID/photo/imageNumber`), the shortcut always submits the tweet identified by the address bar.
 
 ## Frequently asked questions
 

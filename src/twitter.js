@@ -41,6 +41,14 @@
       links.map(tweetUrlFromLink).find(Boolean) || null;
   }
 
+  function currentPhotoTweetUrl() {
+    // Read on every keypress: opening, switching, and closing X's photo viewer
+    // changes the URL without reloading this content script.
+    const url = new URL(location.href);
+    if (!/^\/[a-z0-9_]{1,15}\/status\/\d+\/photo\/\d+\/?$/i.test(url.pathname)) return null;
+    return tweetUrlFromLink({ href: url.href });
+  }
+
   function showToast(message, tone = "neutral") {
     clearTimeout(toastTimer);
     toast?.remove();
@@ -122,7 +130,7 @@
         event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.isComposing) return;
     if ([event.target, document.activeElement].some((element) =>
       element?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]'))) return;
-    const tweetUrl = hoveredTweetUrl();
+    const tweetUrl = currentPhotoTweetUrl() || hoveredTweetUrl();
     if (!tweetUrl) return;
     event.preventDefault();
     event.stopImmediatePropagation();
