@@ -40,6 +40,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/download-artifact@v8
         with:
           name: P2-extension
@@ -48,4 +49,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$GITHUB_REF_NAME" release-artifacts/*.zip --verify-tag --generate-notes --title "P² $GITHUB_REF_NAME"
+        run: |
+          notes_file=".github/release-notes/$GITHUB_REF_NAME.md"
+          if [ -f "$notes_file" ]; then
+            gh release create "$GITHUB_REF_NAME" release-artifacts/*.zip --verify-tag --notes-file "$notes_file" --title "P² $GITHUB_REF_NAME"
+          else
+            gh release create "$GITHUB_REF_NAME" release-artifacts/*.zip --verify-tag --generate-notes --title "P² $GITHUB_REF_NAME"
+          fi
