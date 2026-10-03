@@ -32,7 +32,7 @@ const requiredFiles = [
   "assets/icon-16.png", "assets/icon-32.png", "assets/icon-48.png", "assets/icon-128.png",
   "assets/nazurin-48.png", "options/options.html", "popup/popup.html", "popup/popup.css",
   "popup/popup.js", "src/background.js", "src/content.js", "src/i18n.js",
-  "src/preview.css", "src/settings.js"
+  "src/preview.css", "src/settings.js", "src/twitter.js", "src/twitter.css"
 ];
 for (const file of requiredFiles) {
   if (!existsSync(join(root, file))) fail(`missing ${file}`);
@@ -54,7 +54,7 @@ for (const file of filesUnder(root)) {
   if (statSync(file).size > 5 * 1024 * 1024) fail(`${path} exceeds 5 MiB`);
 }
 
-for (const file of ["src/background.js", "src/content.js", "src/i18n.js", "src/settings.js", "popup/popup.js"]) {
+for (const file of ["src/background.js", "src/content.js", "src/twitter.js", "src/i18n.js", "src/settings.js", "popup/popup.js"]) {
   const result = spawnSync(process.execPath, ["--check", join(root, file)], { encoding: "utf8" });
   if (result.status !== 0) fail(`${file} has invalid JavaScript\n${result.stderr.trim()}`);
 }

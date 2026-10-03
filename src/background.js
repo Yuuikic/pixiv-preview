@@ -21,7 +21,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (!isTrustedPixivSender(sender)) return undefined;
+  const pixivSender = isTrustedPixivSender(sender);
+  const twitterSender = isTrustedTwitterSender(sender);
+  if (!pixivSender && !twitterSender) return undefined;
+
+  if (message.type === "pfp-nazurin-twitter-submit") {
+    if (!twitterSender) return undefined;
+    handleNazurinRequest({
+      tweetUrl: message.tweetUrl,
+      requestId: message.requestId,
+      testOnly: false
+    }, sendResponse);
+    return true;
+  }
 
   if (message.type === "pfp-nazurin-status") {
     getNazurinStatus().then(sendResponse, () => sendResponse({ configured: false, verified: false }));
@@ -29,6 +41,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "pfp-cancel-pages") {
+    if (!pixivSender) return undefined;
     cancelRequest(activePageRequests, message.requestId);
     return undefined;
   }
@@ -39,6 +52,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "pfp-nazurin-submit") {
+    if (!pixivSender) return undefined;
     handleNazurinRequest({
       illustId: message.illustId,
       requestId: message.requestId,
@@ -47,7 +61,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.type !== "pfp-get-pages") return undefined;
+  if (!pixivSender || message.type !== "pfp-get-pages") return undefined;
 
   const illustId = normalizeIllustId(message.illustId);
   const requestId = normalizeRequestId(message.requestId);
@@ -71,10 +85,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-async function handleNazurinRequest({ illustId, requestId, testOnly }, sendResponse) {
+async function handleNazurinRequest({ illustId, tweetUrl, requestId, testOnly }, sendResponse) {
   const normalizedRequestId = normalizeRequestId(requestId);
-  const normalizedIllustId = testOnly ? null : normalizeIllustId(illustId);
-  if (!normalizedRequestId || (!testOnly && !normalizedIllustId)) {
+  const artworkUrl = testOnly ? null : tweetUrl !== undefined
+    ? normalizeTweetUrl(tweetUrl)
+    : normalizeIllustId(illustId) && `https://www.pixiv.net/artworks/${illustId}`;
+  if (!normalizedRequestId || (!testOnly && !artworkUrl)) {
     sendResponse(nazurinFailure("invalid-response"));
     return;
   }
@@ -83,7 +99,7 @@ async function handleNazurinRequest({ illustId, requestId, testOnly }, sendRespo
   activeNazurinRequests.set(normalizedRequestId, controller);
   try {
     sendResponse(await performNazurinRequest({
-      illustId: normalizedIllustId,
+      artworkUrl,
       testOnly,
       signal: controller.signal
     }));
@@ -94,7 +110,7 @@ async function handleNazurinRequest({ illustId, requestId, testOnly }, sendRespo
   }
 }
 
-async function performNazurinRequest({ illustId, testOnly, signal }) {
+async function performNazurinRequest({ artworkUrl, testOnly, signal }) {
   const stored = await chrome.storage.local.get([
     settings.NAZURIN_API_HOST_STORAGE_KEY,
     settings.NAZURIN_API_TOKEN_STORAGE_KEY,
@@ -126,7 +142,7 @@ async function performNazurinRequest({ illustId, testOnly, signal }) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(testOnly ? {} : {
-        url: `https://www.pixiv.net/artworks/${illustId}`
+        url: artworkUrl
       }),
       signal: timeoutController.signal
     });
@@ -227,6 +243,29 @@ function isTrustedExtensionSender(sender) {
       url.hostname === chrome.runtime.id;
   } catch {
     return false;
+  }
+}
+
+function isTrustedTwitterSender(sender) {
+  try {
+    const url = new URL(sender.url || "");
+    return sender.id === chrome.runtime.id && url.protocol === "https:" &&
+      ["x.com", "www.x.com", "twitter.com", "www.twitter.com"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function normalizeTweetUrl(value) {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password || url.port ||
+        !["x.com", "www.x.com", "twitter.com", "www.twitter.com"].includes(url.hostname)) return null;
+    const match = url.pathname.match(/^\/([a-z0-9_]{1,15})\/status\/(\d+)(?:\/(?:photo|video)\/\d+)?\/?$/i);
+    return match ? `https://twitter.com/${match[1]}/status/${match[2]}` : null;
+  } catch {
+    return null;
   }
 }
 

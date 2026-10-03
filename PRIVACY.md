@@ -1,6 +1,6 @@
 # P² Privacy Policy
 
-Last updated: 2026-09-09
+Last updated: 2026-10-03
 
 P² does not operate a developer-controlled server, and the developer does not
 receive or retain data from the extension. To provide its user-facing features,
@@ -27,14 +27,20 @@ service as described below. P² does not collect analytics or telemetry.
   Nazurin service. P² does not send Pixiv cookies, Pixiv login credentials, or
   image data to Nazurin. The Bot Token is used only to construct the endpoint
   required by the user's Nazurin service.
+- On Twitter/X pages, P² reads the hovered tweet's permalink from the page
+  only when the user presses the submission shortcut, and sends its canonical
+  Twitter URL to the configured Nazurin service. It does not request tweet
+  metadata or image resources, or send Twitter/X cookies, credentials, tweet
+  text, or image data. Pending links are held only in memory for the queue.
 
 P² does not inspect, retain, or transmit the user's general browsing history.
-It processes only Pixiv artwork information needed for the preview and
-user-initiated Nazurin features.
+It processes only Pixiv artwork information and selected Twitter/X tweet links
+needed for the preview and user-initiated Nazurin features.
 
 ## Permissions
 
-P² runs only on `https://www.pixiv.net/*`. It uses the `storage` permission for
+P² runs on `https://www.pixiv.net/*`, `https://x.com/*`,
+`https://twitter.com/*`, and their `www` variants. It uses the `storage` permission for
 the settings described above. A Nazurin server origin is requested as an
 optional host permission only when the user saves that host. Remote Nazurin
 services must use HTTPS; HTTP is accepted only for a service on `localhost` or
@@ -49,7 +55,7 @@ or browsing history, and it does not download or execute remotely hosted code.
 - Pixiv receives the metadata and image requests needed to display previews.
 - Chrome may synchronize general preview preferences through the user's signed-in
   browser profile.
-- A user-configured Nazurin service receives an artwork URL only after an
+- A user-configured Nazurin service receives an artwork or tweet URL only after an
   explicit submission action. Nazurin may then download or retain the artwork
   according to the user's own service configuration. Its processing and
   retention are controlled by the user and governed by that service.

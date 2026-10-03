@@ -1745,8 +1745,10 @@
       this.nazurinProcessing = false;
       this.nazurinCurrentRequestId = null;
       const stats = this.nazurinStats || { accepted: 0, failed: 0, skipped: 0 };
+      const singleSuccess = stats.accepted === 1 && !stats.failed && !stats.skipped;
       this.showNazurinToast(
-        t("queueSummary", stats) + (globalFailureMessage ? `; ${globalFailureMessage}` : ""),
+        singleSuccess ? t("submissionSuccess") :
+          t("queueSummary", stats) + (globalFailureMessage ? `; ${globalFailureMessage}` : ""),
         stats.failed || stats.skipped ? "error" : "success"
       );
     }

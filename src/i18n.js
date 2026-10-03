@@ -2,6 +2,7 @@
   "use strict";
 
   const zh = {
+    tweetAlreadyQueued: "该推文已在队列中",
     nazurinAutoHide: "\u63d0\u4ea4\u5230 Nazurin \u6210\u529f\u540e\u81ea\u52a8\u9690\u85cf\u6d6e\u7a97",
     nazurinAutoHideHint: "\u4ec5\u5728\u5bf9\u5e94\u4f5c\u54c1\u94fe\u63a5\u63d0\u4ea4\u6210\u529f\u540e\u5173\u95ed\u6d6e\u7a97",
     configureNazurinFirst: "\u8bf7\u5148\u914d\u7f6eNazurin",
@@ -29,10 +30,10 @@
     shortcuts: "快捷键",
     stickyShortcut: "留驻／取消留驻",
     nazurinShortcut: "提交到 Nazurin",
-    shortcutHint: "点击按键框后按下一个字母或数字。Shift + Nazurin 快捷键提交全部留驻作品。",
+    shortcutHint: "点击按键框后按下一个字母或数字。Pixiv 中 Shift + Nazurin 快捷键提交全部留驻作品；Twitter/X 中鼠标指向推文后按 Nazurin 快捷键提交链接。",
     resetShortcut: "恢复",
     quickCollect: "快速收藏",
-    nazurinHint: "Host 和 Bot Token 仅保存在本机。点击提交时，P² 只向该服务发送所选 Pixiv 作品链接，不发送 Pixiv Cookie。保存配置会申请该 Host 的访问权限；通过连接测试后才会启用 Nazurin 工具。",
+    nazurinHint: "Host 和 Bot Token 仅保存在本机。提交时，P² 只向该服务发送所选 Pixiv 作品或 Twitter/X 推文链接，不发送 Cookie 或图片数据。保存配置会申请该 Host 的访问权限；通过连接测试后才可提交。",
     insecureHttp: "远程 Nazurin 必须使用 HTTPS；HTTP 仅支持本机 localhost 或 127.0.0.1。",
     save: "保存",
     testConnection: "测试连接",
@@ -101,6 +102,7 @@
     unsentOpenSettings: "未发送：请先打开插件设置",
     openSettings: "请打开插件设置",
     queueSummary: "已提交 {accepted}，失败 {failed}，未发送 {skipped}",
+    submissionSuccess: "提交成功",
     nazurinNotConfigured: "Nazurin 尚未配置",
     nazurinNotVerified: "Nazurin 连接尚未验证",
     nazurinPermissionMissing: "Nazurin 缺少站点权限",
@@ -112,6 +114,7 @@
   };
 
   const en = {
+    tweetAlreadyQueued: "This tweet is already queued",
     nazurinAutoHide: "Hide preview after successful Nazurin submission",
     nazurinAutoHideHint: "Close the matching preview only after its artwork link is accepted",
     configureNazurinFirst: "Configure Nazurin first",
@@ -127,9 +130,9 @@
     autoArrange: "Auto-arrange pinned windows", autoArrangeHint: "Resize and place pinned windows in the empty space beside artwork thumbnails",
     copyShortcut: "Copy artwork link", linkCopied: "Artwork link copied", linkCopyFailed: "Could not copy the link",
     shortcuts: "Keyboard shortcuts", stickyShortcut: "Pin / unpin", nazurinShortcut: "Submit to Nazurin",
-    shortcutHint: "Select a key field, then press one letter or number. Shift + the Nazurin key submits every pinned artwork.",
+    shortcutHint: "Select a key field, then press one letter or number. On Pixiv, Shift + the Nazurin key submits every pinned artwork. On Twitter/X, hover a tweet and press the Nazurin key to submit its link.",
     resetShortcut: "Reset", quickCollect: "QUICK COLLECT",
-    nazurinHint: "The host and Bot Token stay on this device. On submission, P² sends only the selected Pixiv artwork URL to that service, never Pixiv cookies. Saving requests access to that host; Nazurin tools are enabled only after a successful connection test.",
+    nazurinHint: "The host and Bot Token stay on this device. On submission, P² sends only the selected Pixiv artwork or Twitter/X tweet URL to that service, never cookies or image data. Saving requests access to that host; submissions require a successful connection test.",
     insecureHttp: "Remote Nazurin services must use HTTPS. HTTP is supported only for localhost or 127.0.0.1.",
     save: "Save", testConnection: "Test connection", clear: "Clear", resetDefaults: "Reset defaults",
     saved: "Saved", saveFailed: "Save failed", cannotSave: "Cannot save", restored: "Defaults restored", readFailed: "Read failed",
@@ -154,6 +157,7 @@
     nazurinIdle: "Submit to Nazurin", nazurinQueued: "Queued for Nazurin", nazurinSending: "Submitting to Nazurin",
     nazurinAccepted: "Submitted to Nazurin", nazurinRetry: "Submission failed; click to retry", alreadyQueued: "This artwork is already queued",
     unsentOpenSettings: "Not sent: open extension settings", openSettings: "open extension settings",
+    submissionSuccess: "Submitted successfully",
     queueSummary: "Submitted {accepted}, failed {failed}, not sent {skipped}", nazurinNotConfigured: "Nazurin is not configured",
     nazurinNotVerified: "Nazurin connection has not been verified", nazurinPermissionMissing: "Nazurin site permission is missing",
     nazurinTimeout: "Nazurin connection timed out", nazurinNetworkError: "Nazurin network connection failed", nazurinHttpError: "Nazurin returned an HTTP error",

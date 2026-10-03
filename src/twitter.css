@@ -1,0 +1,70 @@
+.p2-twitter-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: fixed;
+  z-index: 2147483647;
+  right: 16px;
+  bottom: 16px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 14px;
+  color: #f5f7fa;
+  font: 600 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: rgba(23, 23, 26, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+}
+
+.p2-twitter-toast[data-tone="success"] { border-color: rgba(24, 169, 107, 0.55); }
+.p2-twitter-toast[data-tone="error"] { border-color: rgba(220, 63, 85, 0.6); }
+
+.p2-twitter-toast[data-tone="success"]::before,
+.p2-twitter-toast[data-tone="error"]::before {
+  content: "";
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #18a96b;
+}
+
+.p2-twitter-toast[data-tone="error"]::before {
+  background: #dc3f55;
+}
+
+.p2-twitter-toast[data-tone="success"]::after {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 50%;
+  box-sizing: border-box;
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-65%) rotate(45deg);
+}
+
+.p2-twitter-toast[data-tone="error"]::after {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  background:
+    linear-gradient(45deg, transparent calc(50% - 1px), #fff calc(50% - 1px), #fff calc(50% + 1px), transparent calc(50% + 1px)),
+    linear-gradient(-45deg, transparent calc(50% - 1px), #fff calc(50% - 1px), #fff calc(50% + 1px), transparent calc(50% + 1px));
+  transform: translateY(-50%);
+}
+
+@media (prefers-color-scheme: light) {
+  .p2-twitter-toast {
+    color: #25272c;
+    background: rgba(250, 250, 252, 0.95);
+    border-color: rgba(17, 24, 39, 0.15);
+    box-shadow: 0 12px 36px rgba(30, 41, 59, 0.18);
+  }
+}

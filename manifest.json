@@ -11,7 +11,7 @@
     "128": "assets/icon-128.png"
   },
   "permissions": ["storage"],
-  "host_permissions": ["https://www.pixiv.net/*"],
+  "host_permissions": ["https://www.pixiv.net/*", "https://x.com/*", "https://www.x.com/*", "https://twitter.com/*", "https://www.twitter.com/*"],
   "optional_host_permissions": [
     "https://*/*",
     "http://localhost/*",
@@ -34,6 +34,12 @@
       "matches": ["https://www.pixiv.net/*"],
       "js": ["src/settings.js", "src/i18n.js", "src/content.js"],
       "css": ["src/preview.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://x.com/*", "https://www.x.com/*", "https://twitter.com/*", "https://www.twitter.com/*"],
+      "js": ["src/settings.js", "src/i18n.js", "src/twitter.js"],
+      "css": ["src/twitter.css"],
       "run_at": "document_idle"
     }
   ],

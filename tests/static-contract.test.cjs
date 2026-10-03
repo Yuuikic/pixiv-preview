@@ -15,7 +15,7 @@ test("manifest keeps Nazurin access optional and avoids expansive API permission
   assert.equal(manifest.default_locale, "en");
   assert.equal(manifest.options_page, "options/options.html");
   assert.deepEqual(manifest.permissions, ["storage"]);
-  assert.deepEqual(manifest.host_permissions, ["https://www.pixiv.net/*"]);
+  assert.deepEqual(manifest.host_permissions, ["https://www.pixiv.net/*", "https://x.com/*", "https://www.x.com/*", "https://twitter.com/*", "https://www.twitter.com/*"]);
   assert.deepEqual(manifest.optional_host_permissions, [
     "https://*/*", "http://localhost/*", "http://127.0.0.1/*"
   ]);

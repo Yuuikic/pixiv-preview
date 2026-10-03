@@ -132,6 +132,65 @@ test("rejects missing optional permission without making a network request", asy
   assert.equal(harness.fetchCalls.length, 0);
 });
 
+test("normalizes X and Twitter links before submitting to Nazurin", async () => {
+  for (const host of ["x.com", "www.x.com", "twitter.com", "www.twitter.com"]) {
+    const harness = createHarness();
+    const result = await harness.dispatch({
+      type: "pfp-nazurin-twitter-submit", requestId: "twitter-1",
+      tweetUrl: `https://${host}/artist_name/status/123456789/photo/2?s=20#media`
+    }, `https://${host}/home`);
+    assert.deepEqual(result, { ok: true, status: "accepted" });
+    assert.deepEqual(JSON.parse(harness.fetchCalls[0][1].body), {
+      url: "https://twitter.com/artist_name/status/123456789"
+    });
+  }
+});
+
+test("Twitter submissions retain connection and permission checks", async () => {
+  for (const [options, status] of [
+    [{ verified: false }, "not-verified"], [{ permitted: false }, "permission-missing"],
+    [{ host: null }, "not-configured"]
+  ]) {
+    const harness = createHarness(options);
+    assert.deepEqual(await harness.dispatch({
+      type: "pfp-nazurin-twitter-submit", requestId: "twitter-2",
+      tweetUrl: "https://x.com/artist/status/123"
+    }, "https://x.com/home"), { ok: false, status });
+    assert.equal(harness.fetchCalls.length, 0);
+  }
+});
+
+test("rejects arbitrary URLs and malformed tweet paths", async () => {
+  for (const tweetUrl of [
+    "https://evil.example/artist/status/123", "https://x.com.evil.example/artist/status/123",
+    "http://x.com/artist/status/123", "https://user:pass@x.com/artist/status/123",
+    "https://x.com:444/artist/status/123", "https://x.com/artist/status/nope",
+    "https://x.com/artist/status/123/retweets", "https://x.com/home", "", null
+  ]) {
+    const harness = createHarness();
+    assert.deepEqual(await harness.dispatch({
+      type: "pfp-nazurin-twitter-submit", requestId: "twitter-bad", tweetUrl
+    }, "https://x.com/home"), { ok: false, status: "invalid-response" });
+    assert.equal(harness.fetchCalls.length, 0);
+  }
+});
+
+test("limits Twitter senders to Nazurin routes and keeps Pixiv routes isolated", async () => {
+  const harness = createHarness();
+  for (const [message, sender] of [
+    [{ type: "pfp-get-pages", illustId: "123", requestId: "bad-1" }, "https://x.com/home"],
+    [{ type: "pfp-nazurin-submit", illustId: "123", requestId: "bad-2" }, "https://x.com/home"],
+    [{ type: "pfp-nazurin-twitter-submit", tweetUrl: "https://x.com/a/status/123", requestId: "bad-3" }, "https://www.pixiv.net/"],
+    [{ type: "pfp-nazurin-status" }, "https://x.com.evil.example/"],
+    [{ type: "pfp-nazurin-status" }, "http://twitter.com/"],
+    [{ type: "pfp-nazurin-status" }, "https://evil.example/"]
+  ]) await assert.rejects(harness.dispatch(message, sender), /not handled/);
+  assert.deepEqual(await harness.dispatch({ type: "pfp-nazurin-status" }, "https://x.com/home"), {
+    configured: true, verified: true
+  });
+  assert.equal(harness.fetchCalls.length, 0);
+});
+
 test("tests the real POST route with a side-effect-free missing-url request", async () => {
   const harness = createHarness({ response: { ok: false, status: 400 } });
   const result = await harness.dispatch(

@@ -92,6 +92,14 @@ The Nazurin host and Bot Token are stored only on this device. When you submit b
 
 **“Submitted to Nazurin” means the service accepted the request, not that the download is complete.** Nazurin handles downloading and saving. Check Telegram messages for the final result.
 
+### Twitter/X tweet shortcut
+
+On `x.com` or `twitter.com`, hover a tweet's text, image, timestamp, or another part of its card and press `D` to submit its link to the same Nazurin service. If you customized the submission shortcut, use that key instead. Save your Nazurin configuration and pass the connection test first.
+
+This feature submits links without previewing or downloading images. Hovering a quote card submits the outer tweet; retweets submit the original tweet. Rapid submissions are queued in order, with duplicates suppressed while pending. A notification at the bottom right shows the result; press again to retry a failure. Typing, modified shortcuts, and held keys do not trigger submissions. `Shift+D` batch submission is available only on Pixiv.
+
+Links are normalized to `https://twitter.com/username/status/tweetID`, without tracking parameters or image numbers. Downloading depends on your Nazurin server's Twitter configuration. After updating, reload the extension at `chrome://extensions/` and refresh your open Twitter/X tabs.
+
 ## Frequently asked questions
 
 1. **Why aren’t animations playing?**
@@ -116,7 +124,7 @@ The Nazurin host and Bot Token are stored only on this device. When you submit b
 
 ## Privacy and license
 
-P² runs only on Pixiv pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information and settings on the device. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
+P² runs on Pixiv and Twitter/X pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, user-selected tweet links, and settings on the device. Submissions send only the selected link, never cookies or image data. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
 
 [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
