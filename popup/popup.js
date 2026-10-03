@@ -16,6 +16,8 @@
   const autoArrange = byId("auto-arrange");
   const stickyShortcut = byId("sticky-shortcut");
   const nazurinShortcut = byId("nazurin-shortcut");
+  const nazurinAutoHide = byId("nazurin-auto-hide");
+  const copyShortcut = byId("copy-shortcut");
   const reset = byId("reset-button");
   const saveStatus = byId("save-status");
   const hostInput = byId("nazurin-host");
@@ -33,6 +35,7 @@
   let residueTimer = 0;
   let stickyCode = settings.DEFAULT_STICKY_SHORTCUT_CODE;
   let nazurinCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
+  let copyCode = settings.DEFAULT_COPY_SHORTCUT_CODE;
 
   i18n.localizeDocument();
   document.title = t("settingsTitle");
@@ -67,6 +70,35 @@
     }, 3200);
   }
 
+  function updateNazurinDependencies(host, token) {
+    const configured = Boolean(settings.buildNazurinApiEndpoint(host, token));
+    for (const row of document.querySelectorAll("[data-nazurin-dependent]")) {
+      row.dataset.locked = String(!configured);
+      row.querySelector("input, .shortcut-key").disabled = !configured;
+      row.tabIndex = configured ? -1 : 0;
+    }
+    if (!configured) {
+      nazurinShortcut.classList.remove("pfp-is-capturing");
+      updateShortcutUi();
+    }
+  }
+  for (const tip of document.querySelectorAll(".nazurin-config-tip")) {
+    tip.addEventListener("click", () => {
+      const section = document.querySelector(".nazurin-settings");
+      section.open = true;
+      section.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      hostInput.focus();
+    });
+  }
+  updateNazurinDependencies("", "");
+  globalThis.chrome?.storage?.onChanged?.addListener(async (_changes, area) => {
+    if (area !== "local" || !local) return;
+    try {
+      const stored = await local.get([settings.NAZURIN_API_HOST_STORAGE_KEY, settings.NAZURIN_API_TOKEN_STORAGE_KEY]);
+      updateNazurinDependencies(stored[settings.NAZURIN_API_HOST_STORAGE_KEY], stored[settings.NAZURIN_API_TOKEN_STORAGE_KEY]);
+    } catch { updateNazurinDependencies("", ""); }
+  });
+
   function setVerified(value) {
     verificationIndicator.dataset.verified = String(value === true);
   }
@@ -96,6 +128,7 @@
   function updateShortcutUi() {
     stickyShortcut.textContent = settings.shortcutCodeLabel(stickyCode);
     nazurinShortcut.textContent = settings.shortcutCodeLabel(nazurinCode);
+    copyShortcut.textContent = settings.shortcutCodeLabel(copyCode);
   }
 
   function bindShortcut(button, type) {
@@ -106,24 +139,24 @@
       button.focus();
     });
     button.addEventListener("keydown", async (event) => {
-      if (!button.classList.contains("pfp-is-capturing")) return;
+      if (button.disabled || !button.classList.contains("pfp-is-capturing")) return;
       event.preventDefault();
       event.stopPropagation();
-      const fallback = type === "sticky" ? settings.DEFAULT_STICKY_SHORTCUT_CODE : settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
       const code = settings.normalizeShortcutCode(event.code, "");
       if (!code) return;
-      const other = type === "sticky" ? nazurinCode : stickyCode;
-      if (code === other) {
+      const codes = { sticky: stickyCode, nazurin: nazurinCode, copy: copyCode };
+      if (Object.entries(codes).some(([name, value]) => name !== type && value === code)) {
         showStatus("shortcutConflict");
         updateShortcutUi();
         button.classList.remove("pfp-is-capturing");
         return;
       }
-      if (type === "sticky") stickyCode = code || fallback;
-      else nazurinCode = code || fallback;
+      if (type === "sticky") stickyCode = code;
+      else if (type === "nazurin") nazurinCode = code;
+      else copyCode = code;
       button.classList.remove("pfp-is-capturing");
       updateShortcutUi();
-      await saveSync({ [type === "sticky" ? settings.STICKY_SHORTCUT_STORAGE_KEY : settings.NAZURIN_SHORTCUT_STORAGE_KEY]: code });
+      await saveSync({ [type === "sticky" ? settings.STICKY_SHORTCUT_STORAGE_KEY : type === "nazurin" ? settings.NAZURIN_SHORTCUT_STORAGE_KEY : settings.COPY_SHORTCUT_STORAGE_KEY]: code });
     });
     button.addEventListener("blur", () => {
       button.classList.remove("pfp-is-capturing");
@@ -132,6 +165,7 @@
   }
   bindShortcut(stickyShortcut, "sticky");
   bindShortcut(nazurinShortcut, "nazurin");
+  bindShortcut(copyShortcut, "copy");
 
   async function saveDelay(value) { await saveSync({ [settings.STORAGE_KEY]: displayDelay(value) }); }
   async function saveResidue(value) { await saveSync({ [settings.RESIDUE_STORAGE_KEY]: displayResidue(value) }); }
@@ -156,6 +190,10 @@
   autoArrange.addEventListener("change", () => saveSync({
     [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.normalizeAutoArrange(autoArrange.checked)
   }));
+
+  nazurinAutoHide.addEventListener("change", () => {
+    if (!nazurinAutoHide.disabled) saveSync({ [settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]: nazurinAutoHide.checked });
+  });
 
   function updateHttpWarning() {
     httpWarning.hidden = !settings.isInsecureRemoteNazurinHost(hostInput.value);
@@ -198,6 +236,7 @@
       });
       saved = true;
       savedHost = config.host;
+      updateNazurinDependencies(config.host, config.token);
       hostInput.value = config.host;
       setVerified(false);
       if (oldPattern && oldPattern !== config.permissionPattern) {
@@ -244,6 +283,7 @@
     const pattern = settings.getNazurinPermissionPattern(savedHost);
     try {
       await local.remove([settings.NAZURIN_API_HOST_STORAGE_KEY, settings.NAZURIN_API_TOKEN_STORAGE_KEY, settings.NAZURIN_VERIFIED_STORAGE_KEY]);
+      updateNazurinDependencies("", "");
       if (pattern) await globalThis.chrome.permissions.remove({ origins: [pattern] });
       savedHost = "";
       hostInput.value = tokenInput.value = "";
@@ -258,11 +298,13 @@
     clearTimeout(saveTimer); clearTimeout(residueTimer);
     stickyCode = settings.DEFAULT_STICKY_SHORTCUT_CODE;
     nazurinCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
+    copyCode = settings.DEFAULT_COPY_SHORTCUT_CODE;
     displayDelay(settings.DEFAULT_HOVER_DELAY_MS);
     displayResidue(settings.DEFAULT_HOVER_RESIDUE_MS);
     occluded.checked = settings.DEFAULT_OCCLUDED_SWITCH_ENABLED;
     original.checked = settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED;
     autoArrange.checked = settings.DEFAULT_AUTO_ARRANGE_ENABLED;
+    nazurinAutoHide.checked = settings.DEFAULT_NAZURIN_AUTO_HIDE;
     updateShortcutUi();
     if (!sync) return showStatus("cannotSave");
     try {
@@ -273,6 +315,8 @@
         [settings.ORIGINAL_UPGRADE_STORAGE_KEY]: settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED,
         [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
         [settings.STICKY_SHORTCUT_STORAGE_KEY]: stickyCode,
+        [settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]: settings.DEFAULT_NAZURIN_AUTO_HIDE,
+        [settings.COPY_SHORTCUT_STORAGE_KEY]: copyCode,
         [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: nazurinCode
       });
       showStatus("restored");
@@ -288,15 +332,19 @@
         [settings.ORIGINAL_UPGRADE_STORAGE_KEY]: settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED,
         [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
         [settings.STICKY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_STICKY_SHORTCUT_CODE,
+        [settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]: settings.DEFAULT_NAZURIN_AUTO_HIDE,
+        [settings.COPY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_COPY_SHORTCUT_CODE,
         [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_NAZURIN_SHORTCUT_CODE
       }) : {};
       displayDelay(stored[settings.STORAGE_KEY]);
       displayResidue(stored[settings.RESIDUE_STORAGE_KEY]);
       occluded.checked = settings.normalizeOccludedSwitch(stored[settings.OCCLUDED_SWITCH_STORAGE_KEY]);
       original.checked = settings.normalizeOriginalUpgrade(stored[settings.ORIGINAL_UPGRADE_STORAGE_KEY]);
+      nazurinAutoHide.checked = stored[settings.NAZURIN_AUTO_HIDE_STORAGE_KEY] === true;
       autoArrange.checked = settings.normalizeAutoArrange(stored[settings.AUTO_ARRANGE_STORAGE_KEY]);
       stickyCode = settings.normalizeShortcutCode(stored[settings.STICKY_SHORTCUT_STORAGE_KEY], settings.DEFAULT_STICKY_SHORTCUT_CODE);
       nazurinCode = settings.normalizeShortcutCode(stored[settings.NAZURIN_SHORTCUT_STORAGE_KEY], settings.DEFAULT_NAZURIN_SHORTCUT_CODE);
+      copyCode = settings.normalizeShortcutCode(stored[settings.COPY_SHORTCUT_STORAGE_KEY], settings.DEFAULT_COPY_SHORTCUT_CODE);
       if (stickyCode === nazurinCode) nazurinCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
       updateShortcutUi();
     } catch { showStatus("readFailed"); }
@@ -313,6 +361,7 @@
       savedHost = settings.normalizeNazurinApiHost(stored[settings.NAZURIN_API_HOST_STORAGE_KEY]) || "";
       hostInput.value = savedHost;
       tokenInput.value = stored[settings.NAZURIN_API_TOKEN_STORAGE_KEY] || "";
+      updateNazurinDependencies(savedHost, tokenInput.value);
       setVerified(stored[settings.NAZURIN_VERIFIED_STORAGE_KEY] === true);
       updateHttpWarning();
     } catch { showNazurin(t("nazurinReadFailed"), "error", true); }

@@ -28,3 +28,14 @@ test("uses Chinese for simplified and traditional Chinese browser languages", ()
 test("substitutes dynamic labels without evaluating markup", () => {
   assert.equal(load("en").t("stickyTitle", { key: "Q" }), "Press Q to pin preview");
 });
+
+test("new clipboard and Nazurin settings have Chinese and English translations", () => {
+  for (const language of ["en", "zh-CN", "zh-TW"]) {
+    const i18n = load(language);
+    for (const key of ["copyShortcut", "linkCopied", "linkCopyFailed", "nazurinAutoHide",
+      "nazurinAutoHideHint", "configureNazurinFirst", "nazurinShortcut"]) {
+      assert.notEqual(i18n.t(key), key);
+      assert.ok(language === "en" ? /[A-Za-z]/.test(i18n.t(key)) : /[\u4e00-\u9fff]/.test(i18n.t(key)));
+    }
+  }
+});

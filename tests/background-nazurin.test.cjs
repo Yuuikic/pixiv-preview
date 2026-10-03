@@ -21,6 +21,8 @@ function createHarness({
   timeoutImmediately = false
 } = {}) {
   let listener;
+  let installedListener;
+  let optionsPageOpenCount = 0;
   const fetchCalls = [];
   const fetchErrors = [];
   const context = vm.createContext({
@@ -43,6 +45,8 @@ function createHarness({
     chrome: {
       runtime: {
         id: "pixiv-preview-test",
+        onInstalled: { addListener(callback) { installedListener = callback; } },
+        openOptionsPage() { optionsPageOpenCount += 1; },
         onMessage: { addListener(callback) { listener = callback; } }
       },
       storage: {
@@ -78,8 +82,25 @@ function createHarness({
     });
   }
 
-  return { dispatch, fetchCalls, fetchErrors };
+  return {
+    dispatch, fetchCalls, fetchErrors,
+    install(reason) { installedListener({ reason }); },
+    get optionsPageOpenCount() { return optionsPageOpenCount; }
+  };
 }
+
+test("opens the settings tab on first install only", () => {
+  const harness = createHarness();
+  harness.install("update");
+  harness.install("chrome_update");
+  harness.install("shared_module_update");
+  assert.equal(harness.optionsPageOpenCount, 0);
+  harness.install("install");
+  assert.equal(harness.optionsPageOpenCount, 1);
+
+  const manifest = JSON.parse(fs.readFileSync(path.join(projectRoot, "manifest.json"), "utf8"));
+  assert.equal(manifest.options_page, "options/options.html");
+});
 
 test("POSTs only the internally constructed canonical Pixiv artwork URL", async () => {
   const harness = createHarness();

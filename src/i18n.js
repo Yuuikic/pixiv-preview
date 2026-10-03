@@ -2,6 +2,10 @@
   "use strict";
 
   const zh = {
+    nazurinAutoHide: "\u63d0\u4ea4\u5230 Nazurin \u6210\u529f\u540e\u81ea\u52a8\u9690\u85cf\u6d6e\u7a97",
+    nazurinAutoHideHint: "\u4ec5\u5728\u5bf9\u5e94\u4f5c\u54c1\u94fe\u63a5\u63d0\u4ea4\u6210\u529f\u540e\u5173\u95ed\u6d6e\u7a97",
+    configureNazurinFirst: "\u8bf7\u5148\u914d\u7f6eNazurin",
+
     settingsTitle: "P² 设置",
     settingsEyebrow: "P²：PIXIV 作品预览",
     openFullSettings: "在新标签页打开完整设置",
@@ -19,6 +23,9 @@
     originalHint: "预览图显示后，再加载原图替换",
     autoArrange: "自动排列留驻窗",
     autoArrangeHint: "留驻时自动缩放，并排列到作品缩略图两侧的空白区域",
+    copyShortcut: "\u590d\u5236\u8be6\u60c5\u9875\u94fe\u63a5",
+    linkCopied: "\u8be6\u60c5\u9875\u94fe\u63a5\u5df2\u590d\u5236",
+    linkCopyFailed: "\u590d\u5236\u5931\u8d25",
     shortcuts: "快捷键",
     stickyShortcut: "留驻／取消留驻",
     nazurinShortcut: "提交到 Nazurin",
@@ -51,7 +58,7 @@
     clearFailed: "清除失败",
     localStorageUnavailable: "本机存储不可用",
     nazurinReadFailed: "Nazurin 配置读取失败",
-    shortcutConflict: "两个快捷键不能相同",
+    shortcutConflict: "快捷键不能相同",
     pressShortcut: "按下按键",
     notConfigured: "尚未保存 Nazurin 配置",
     notVerified: "请先在设置中测试 Nazurin 连接",
@@ -105,6 +112,10 @@
   };
 
   const en = {
+    nazurinAutoHide: "Hide preview after successful Nazurin submission",
+    nazurinAutoHideHint: "Close the matching preview only after its artwork link is accepted",
+    configureNazurinFirst: "Configure Nazurin first",
+
     settingsTitle: "P² Settings", settingsEyebrow: "P²: PIXIV ARTWORK PREVIEW",
     openFullSettings: "Open full settings in a new tab", hoverDelay: "Hover delay",
     moreResponsive: "More responsive", fewerAccidents: "Fewer accidental previews",
@@ -114,6 +125,7 @@
     occluded: "Detect artwork under preview", occludedHint: "Switch to a thumbnail even when an unpinned preview overlaps it",
     original: "Load original image", originalHint: "Replace the preview image with the original after it loads",
     autoArrange: "Auto-arrange pinned windows", autoArrangeHint: "Resize and place pinned windows in the empty space beside artwork thumbnails",
+    copyShortcut: "Copy artwork link", linkCopied: "Artwork link copied", linkCopyFailed: "Could not copy the link",
     shortcuts: "Keyboard shortcuts", stickyShortcut: "Pin / unpin", nazurinShortcut: "Submit to Nazurin",
     shortcutHint: "Select a key field, then press one letter or number. Shift + the Nazurin key submits every pinned artwork.",
     resetShortcut: "Reset", quickCollect: "QUICK COLLECT",

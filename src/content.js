@@ -7,6 +7,7 @@
   const i18n = globalThis.P2I18n;
   const t = i18n.t;
   const extensionVersion = globalThis.chrome?.runtime?.getManifest?.().version || "development";
+  const nazurinIconUrl = globalThis.chrome.runtime.getURL("assets/nazurin-48.png");
   const ORIGINAL_DELAY_MS = 700;
   const POINTER_GAP_PX = 16;
   const VIEWPORT_MARGIN_PX = 8;
@@ -40,8 +41,10 @@
   let originalUpgradeEnabled = settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED;
   let autoArrangeEnabled = settings.DEFAULT_AUTO_ARRANGE_ENABLED;
   let stickyShortcutCode = settings.DEFAULT_STICKY_SHORTCUT_CODE;
+  let copyShortcutCode = settings.DEFAULT_COPY_SHORTCUT_CODE;
   let nazurinShortcutCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
   let nazurinEnabled = false;
+  let nazurinAutoHide = settings.DEFAULT_NAZURIN_AUTO_HIDE;
 
   class LruCache {
     constructor(limit) {
@@ -140,6 +143,13 @@
     return { illustId, pages, degraded: false };
   }
 
+  function cancelBackgroundRequest(message) {
+    try {
+      const pending = globalThis.chrome?.runtime?.sendMessage?.(message);
+      pending?.catch?.(() => {});
+    } catch { /* Reloading the extension invalidates the old page context. */ }
+  }
+
   function requestArtworkPages(illustId, signal) {
     const requestId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     return new Promise((resolve, reject) => {
@@ -151,7 +161,7 @@
         callback(value);
       };
       const handleAbort = () => {
-        globalThis.chrome?.runtime?.sendMessage?.({ type: "pfp-cancel-pages", requestId });
+        cancelBackgroundRequest({ type: "pfp-cancel-pages", requestId });
         finish(reject, new DOMException("Metadata request cancelled", "AbortError"));
       };
       if (signal.aborted) {
@@ -159,7 +169,8 @@
         return;
       }
       signal.addEventListener("abort", handleAbort, { once: true });
-      globalThis.chrome.runtime.sendMessage(
+      try {
+        globalThis.chrome.runtime.sendMessage(
         { type: "pfp-get-pages", illustId, requestId },
         (response) => {
           if (globalThis.chrome.runtime.lastError) {
@@ -175,12 +186,16 @@
           }
           finish(resolve, response.payload);
         }
-      );
+        );
+      } catch (error) {
+        finish(reject, error);
+      }
     });
   }
 
   function requestNazurinSubmit(illustId, requestId) {
     return new Promise((resolve) => {
+      try {
       globalThis.chrome.runtime.sendMessage(
         { type: "pfp-nazurin-submit", illustId, requestId },
         (response) => {
@@ -193,15 +208,29 @@
             : { ok: false, status: "invalid-response" });
         }
       );
+      } catch {
+        resolve({ ok: false, status: "network-error" });
+      }
     });
   }
 
-  function requestNazurinStatus() {
+  function requestNazurinStatus(attempt = 0) {
     return new Promise((resolve) => {
-      globalThis.chrome.runtime.sendMessage({ type: "pfp-nazurin-status" }, (response) => {
-        if (globalThis.chrome.runtime.lastError) return resolve(false);
-        resolve(response?.configured === true && response?.verified === true);
-      });
+      const retry = () => {
+        if (attempt >= 3) return resolve(false);
+        window.setTimeout(() => resolve(requestNazurinStatus(attempt + 1)), 500 * (attempt + 1));
+      };
+      try {
+        globalThis.chrome.runtime.sendMessage({ type: "pfp-nazurin-status" }, (response) => {
+          // A restored tab can run before the background is ready. Only retry
+          // transport failures; a valid unverified status still disables tools.
+          if (globalThis.chrome.runtime.lastError || typeof response?.verified !== "boolean" ||
+              typeof response?.configured !== "boolean") return retry();
+          resolve(response.configured && response.verified);
+        });
+      } catch {
+        retry();
+      }
     });
   }
 
@@ -432,7 +461,7 @@
       const nazurinIcon = createElement("img", "pfp-nazurin-icon");
       nazurinIcon.alt = "";
       nazurinIcon.draggable = false;
-      nazurinIcon.src = globalThis.chrome.runtime.getURL("assets/nazurin-48.png");
+      nazurinIcon.src = nazurinIconUrl;
       const nazurinProgress = createElement("span", "pfp-nazurin-progress");
       nazurin.append(nazurinIcon, nazurinProgress);
       tools.append(bookmark, open, nazurin);
@@ -1127,7 +1156,7 @@
       this.ui.stage.classList.add("pfp-no-size-transition");
       this.ui.stage.style.width = `${rect.width}px`;
       this.ui.stage.style.height = `${rect.height}px`;
-      this.ui.root.classList.remove("pfp-is-visible", "pfp-is-positioning");
+      this.ui.root.classList.remove("pfp-is-visible", "pfp-is-positioning", "pfp-is-topmost");
       this.ui.root.setAttribute("aria-hidden", "true");
       window.setTimeout(() => this.ui.root.remove(), EXIT_CLEANUP_DELAY_MS);
     }
@@ -1163,6 +1192,7 @@
     }
 
     beginHover(candidate) {
+      if (!globalThis.chrome?.runtime?.id) return;
       const isSameCandidate = this.hoverCandidate?.anchor === candidate.anchor &&
         this.hoverCandidate.illustId === candidate.illustId;
       if (isSameCandidate && (this.hoverTimer || this.hoverWindow?.illustId === candidate.illustId ||
@@ -1191,6 +1221,7 @@
           return;
         }
         this.discardEscapeHistory();
+        if (!globalThis.chrome?.runtime?.id) return;
         const preview = new PreviewWindow(this, current, this.pointerX, this.pointerY);
         this.hoverWindow = preview;
         if (previous && previous !== preview) this.closeWindow(previous);
@@ -1374,6 +1405,14 @@
       this.zIndex += 1;
       preview.ui.root.style.zIndex = String(this.zIndex);
       this.activeWindow = preview;
+      this.updateTopmostHighlight([...this.allWindows(), preview]);
+    }
+
+    updateTopmostHighlight(windows = this.allWindows()) {
+      const top = this.topmostWindow(windows);
+      for (const preview of windows) {
+        preview.ui.root.classList.toggle("pfp-is-topmost", preview === top);
+      }
     }
 
     closeWindow(preview) {
@@ -1394,6 +1433,7 @@
         }, null) || this.hoverWindow || null;
       }
       preview.close();
+      this.updateTopmostHighlight();
       this.scheduleAutoArrange();
     }
 
@@ -1429,7 +1469,7 @@
       this.pinnedByIllustId.clear();
       this.activeWindow = null;
       for (const { preview } of state.windows) {
-        preview.ui.root.classList.remove("pfp-is-visible", "pfp-is-positioning");
+        preview.ui.root.classList.remove("pfp-is-visible", "pfp-is-positioning", "pfp-is-topmost");
         preview.ui.root.setAttribute("aria-hidden", "true");
       }
       this.escapeHistoryTimer = window.setTimeout(() => this.discardEscapeHistory(), ESCAPE_RESTORE_WINDOW_MS);
@@ -1472,6 +1512,7 @@
         preview.clampToViewport();
       }
       this.activeWindow = restoredActive || this.topmostWindow();
+      this.updateTopmostHighlight();
       this.scheduleAutoArrange();
       return true;
     }
@@ -1678,6 +1719,11 @@
         if (response?.ok && response.status === "accepted") {
           this.nazurinStats.accepted += 1;
           this.setNazurinStateForArtwork(item.illustId, "accepted");
+          if (nazurinAutoHide) {
+            for (const preview of this.allWindows()) {
+              if (preview.illustId === item.illustId) this.closeWindow(preview);
+            }
+          }
         } else {
           this.nazurinStats.failed += 1;
           const message = this.nazurinFailureMessage(response);
@@ -1723,7 +1769,7 @@
       this.nazurinDelayResolve?.(false);
       this.nazurinDelayResolve = null;
       if (this.nazurinCurrentRequestId) {
-        globalThis.chrome?.runtime?.sendMessage?.({
+        cancelBackgroundRequest({
           type: "pfp-cancel-nazurin",
           requestId: this.nazurinCurrentRequestId
         });
@@ -1788,6 +1834,17 @@
       window.setTimeout(() => toast.remove(), 160);
     }
 
+    async copyTopmostArtworkLink() {
+      const preview = this.topmostWindow();
+      if (!preview) return;
+      try {
+        await navigator.clipboard.writeText(`https://www.pixiv.net/artworks/${preview.illustId}`);
+        this.showNazurinToast(t("linkCopied"));
+      } catch {
+        this.showNazurinToast(t("linkCopyFailed"), "error");
+      }
+    }
+
     handleKeyDown(event) {
       if (isEditableElement(event.target)) return;
       if (event.key === "Escape") {
@@ -1800,6 +1857,11 @@
       }
       if (this.allWindows().length === 0) return;
       const plainShortcut = !event.repeat && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey;
+      if (event.code === copyShortcutCode && plainShortcut) {
+        event.preventDefault();
+        void this.copyTopmostArtworkLink();
+        return;
+      }
       if (event.code === stickyShortcutCode && plainShortcut) {
         event.preventDefault();
         if (!this.pinHoverWindow()) this.unpinTopWindow();
@@ -1856,8 +1918,11 @@
           [settings.ORIGINAL_UPGRADE_STORAGE_KEY]: settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED,
           [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
           [settings.STICKY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_STICKY_SHORTCUT_CODE,
+          [settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]: settings.DEFAULT_NAZURIN_AUTO_HIDE,
+          [settings.COPY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_COPY_SHORTCUT_CODE,
           [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_NAZURIN_SHORTCUT_CODE
         });
+        nazurinAutoHide = stored[settings.NAZURIN_AUTO_HIDE_STORAGE_KEY] === true;
         hoverDelayMs = settings.normalizeHoverDelay(stored[settings.STORAGE_KEY]);
         hoverResidueMs = settings.normalizeHoverResidue(stored[settings.RESIDUE_STORAGE_KEY]);
         occludedSwitchEnabled = settings.normalizeOccludedSwitch(stored[settings.OCCLUDED_SWITCH_STORAGE_KEY]);
@@ -1865,6 +1930,9 @@
         autoArrangeEnabled = settings.normalizeAutoArrange(stored[settings.AUTO_ARRANGE_STORAGE_KEY]);
         stickyShortcutCode = settings.normalizeShortcutCode(
           stored[settings.STICKY_SHORTCUT_STORAGE_KEY], settings.DEFAULT_STICKY_SHORTCUT_CODE
+        );
+        copyShortcutCode = settings.normalizeShortcutCode(
+          stored[settings.COPY_SHORTCUT_STORAGE_KEY], settings.DEFAULT_COPY_SHORTCUT_CODE
         );
         nazurinShortcutCode = settings.normalizeShortcutCode(
           stored[settings.NAZURIN_SHORTCUT_STORAGE_KEY], settings.DEFAULT_NAZURIN_SHORTCUT_CODE
@@ -1877,6 +1945,7 @@
         autoArrangeEnabled = settings.DEFAULT_AUTO_ARRANGE_ENABLED;
         stickyShortcutCode = settings.DEFAULT_STICKY_SHORTCUT_CODE;
         nazurinShortcutCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
+        copyShortcutCode = settings.DEFAULT_COPY_SHORTCUT_CODE;
       }
     }
     globalThis.chrome?.storage?.onChanged?.addListener((changes, areaName) => {
@@ -1915,16 +1984,24 @@
           }
         }
       }
+      if (changes[settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]) {
+        nazurinAutoHide = changes[settings.NAZURIN_AUTO_HIDE_STORAGE_KEY].newValue === true;
+      }
+      if (changes[settings.COPY_SHORTCUT_STORAGE_KEY]) {
+        copyShortcutCode = settings.normalizeShortcutCode(
+          changes[settings.COPY_SHORTCUT_STORAGE_KEY].newValue, settings.DEFAULT_COPY_SHORTCUT_CODE
+        );
+      }
       if (changes[settings.NAZURIN_SHORTCUT_STORAGE_KEY]) {
         nazurinShortcutCode = settings.normalizeShortcutCode(
           changes[settings.NAZURIN_SHORTCUT_STORAGE_KEY].newValue, settings.DEFAULT_NAZURIN_SHORTCUT_CODE
         );
       }
     });
-    manager.setNazurinEnabled(await requestNazurinStatus());
     globalThis.chrome?.storage?.onChanged?.addListener((_changes, areaName) => {
       if (areaName === "local") requestNazurinStatus().then((enabled) => manager.setNazurinEnabled(enabled));
     });
+    manager.setNazurinEnabled(await requestNazurinStatus());
   }
 
   document.addEventListener("pointerover", (event) => manager.handlePointerOver(event), true);

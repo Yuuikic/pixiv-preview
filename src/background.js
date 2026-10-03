@@ -6,6 +6,12 @@ const settings = globalThis.PixivPreviewSettings;
 const activePageRequests = new Map();
 const activeNazurinRequests = new Map();
 
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install") {
+    chrome.runtime.openOptionsPage();
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || typeof message !== "object") return undefined;
 

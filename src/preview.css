@@ -71,10 +71,22 @@
 
 .pfp-root.pfp-is-sticky {
   touch-action: none;
-  border-color: rgba(0, 150, 250, 0.72);
+  border-color: var(--pfp-border);
   box-shadow:
     0 18px 52px rgba(0, 0, 0, 0.48),
-    0 0 0 1px rgba(0, 150, 250, 0.2);
+    0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.pfp-root.pfp-is-topmost {
+  border-color: var(--pfp-accent);
+  box-shadow:
+    0 0 0 1px var(--pfp-accent),
+    0 0 0 1px rgba(0, 166, 255, 0.18),
+    0 18px 52px rgba(0, 0, 0, 0.38);
+}
+
+.pfp-root.pfp-is-topmost .pfp-toolbar {
+  box-shadow: 0 1px 0 var(--pfp-accent) inset;
 }
 
 .pfp-root.pfp-is-auto-docked {
@@ -328,11 +340,17 @@
 }
 
 .pfp-root:not(.pfp-is-sticky) .pfp-tools {
-  opacity: 0.38;
   pointer-events: none;
 }
 
 .pfp-root:not(.pfp-is-sticky) .pfp-tools .pfp-button {
+  opacity: 0.38;
+}
+
+.pfp-root:not(.pfp-is-sticky) .pfp-tools .pfp-nazurin-button[data-state="queued"],
+.pfp-root:not(.pfp-is-sticky) .pfp-tools .pfp-nazurin-button[data-state="sending"],
+.pfp-root:not(.pfp-is-sticky) .pfp-tools .pfp-nazurin-button[data-state="accepted"],
+.pfp-root:not(.pfp-is-sticky) .pfp-tools .pfp-nazurin-button[data-state="error"] {
   opacity: 1;
 }
 

@@ -45,6 +45,7 @@ These are the default shortcuts. They do not activate while you are typing in an
 | --- | --- |
 | Hover over a thumbnail | Show a preview; after leaving, it lingers for 0.5 seconds by default so you can move into it |
 | `S` | Pin the current hover preview; if there is none, unpin the topmost window |
+| `C` | Copy the topmost preview's artwork detail URL to the clipboard, without pinning first |
 | Click a window / its Pin control | Clicking the window pins it and brings it to the front; the Pin control toggles that window’s pinned state |
 | Drag the image or an empty area of the bottom bar | Move the window, automatically pinning it if needed |
 | Scroll inside a pinned window / drag its edges | Resize the window proportionally |
@@ -65,9 +66,10 @@ Click P² in the Chrome toolbar to open settings. The button in the upper-right 
 | Detect artwork under preview | On by default, allowing switches to thumbnails covered by an unpinned preview. Turn it off to keep viewing the current artwork when entering its window |
 | Load original image | Off by default. When enabled, loads the original after the preview image, potentially using more time and data |
 | Auto-arrange pinned windows | Off by default. When enabled, automatically resizes and places windows in the empty space on either side of artwork thumbnails when pinned |
-| Keyboard shortcuts | Change the pin and Nazurin submission keys; defaults are `S` and `D` |
+| Keyboard shortcuts | Listed as pin, copy artwork link, and submit to Nazurin; defaults are `S`, `C`, and `D`. Use distinct letters or numbers to customize them |
+| Hide preview after successful Nazurin submission | Off by default; close the matching preview once Nazurin accepts its artwork link, whether submitted by shortcut or icon button |
 
-General settings save automatically and take effect immediately. The settings interface uses Chinese or English based on your browser language.
+General settings save automatically and take effect immediately.
 
 ## Optional: connect Nazurin
 

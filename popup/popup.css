@@ -339,6 +339,38 @@ input[type="range"] {
   margin-top: 8px;
 }
 
+.nazurin-dependent {
+  position: relative;
+}
+
+.nazurin-dependent[data-locked="true"] > :not(.nazurin-config-tip) {
+  opacity: 0.4;
+}
+
+.nazurin-dependent[data-locked="true"] input,
+.nazurin-dependent[data-locked="true"] .shortcut-key {
+  pointer-events: none;
+}
+
+.nazurin-config-tip {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% - 4px);
+  z-index: 2;
+  padding: 8px 12px;
+  color: #fff;
+  background: #303640;
+  border: 1px solid #657080;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.nazurin-dependent[data-locked="true"]:hover .nazurin-config-tip,
+.nazurin-dependent[data-locked="true"]:focus-within .nazurin-config-tip {
+  display: block;
+}
+
 .toggle-setting p {
   margin: 4px 0 0;
   color: rgba(255, 255, 255, 0.5);
