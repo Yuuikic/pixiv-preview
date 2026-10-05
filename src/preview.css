@@ -495,7 +495,19 @@
 }
 
 .pfp-root .pfp-close-button {
-  font-size: 20px;
+  flex: 0 0 28px;
+  width: 28px;
+  padding: 0;
+}
+
+.pfp-root .pfp-close-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .pfp-root .pfp-resize-handle {

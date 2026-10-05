@@ -2,7 +2,7 @@
   "name": "p2-pixiv-preview",
   "version": "1.1.0",
   "private": true,
-  "description": "P²: A browser extension for previewing Pixiv artworks, designed especially to work with Nazurin.",
+  "description": "P2: A browser extension for previewing Pixiv artworks, designed especially to work with Nazurin.",
   "license": "MIT",
   "scripts": {
     "test": "node --test tests/*.test.cjs",

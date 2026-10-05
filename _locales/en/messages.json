@@ -1,5 +1,5 @@
 {
-  "extensionName": { "message": "P²" },
-  "extensionDescription": { "message": "P²: A browser extension for previewing Pixiv artworks, designed especially to work with Nazurin." },
-  "actionTitle": { "message": "P² settings" }
+  "extensionName": { "message": "P2: Pixiv Preview" },
+  "extensionDescription": { "message": "P2: A browser extension for previewing Pixiv artworks, designed especially to work with Nazurin." },
+  "actionTitle": { "message": "P2 settings" }
 }

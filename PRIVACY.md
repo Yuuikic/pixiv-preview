@@ -1,12 +1,12 @@
-# P² Privacy Policy
+# P2 Privacy Policy
 
 Last updated: 2026-10-03
 
-P² does not operate a developer-controlled server, and the developer does not
+P2 does not operate a developer-controlled server, and the developer does not
 receive or retain data from the extension. To provide its user-facing features,
 the extension processes a limited amount of data on the user's device and
 communicates with Pixiv and, when configured by the user, a self-hosted Nazurin
-service as described below. P² does not collect analytics or telemetry.
+service as described below. P2 does not collect analytics or telemetry.
 
 ## Data processed by the extension
 
@@ -16,31 +16,31 @@ service as described below. P² does not collect analytics or telemetry.
 - An optional Nazurin API host and Telegram Bot Token are stored only with
   `chrome.storage.local`. They are not placed in Chrome Sync or sent to the
   developer.
-- On Pixiv pages, P² processes the current artwork identifier and requests
+- On Pixiv pages, P2 processes the current artwork identifier and requests
   artwork metadata and image resources only after the user hovers an artwork
   long enough to open a preview. These requests go to Pixiv. The browser may
-  include the user's existing Pixiv session, but P² does not read or store the
+  include the user's existing Pixiv session, but P2 does not read or store the
   user's Pixiv cookies or login credentials.
 - When the user explicitly submits one artwork, or explicitly starts a batch
-  submission with `Shift` plus the configured Nazurin shortcut, P² sends the
+  submission with `Shift` plus the configured Nazurin shortcut, P2 sends the
   canonical Pixiv artwork URL for each selected artwork to the user-configured
-  Nazurin service. P² does not send Pixiv cookies, Pixiv login credentials, or
+  Nazurin service. P2 does not send Pixiv cookies, Pixiv login credentials, or
   image data to Nazurin. The Bot Token is used only to construct the endpoint
   required by the user's Nazurin service.
-- On Twitter/X pages, P² reads the hovered tweet's permalink from the page,
+- On Twitter/X pages, P2 reads the hovered tweet's permalink from the page,
   or the current photo viewer's tweet URL from the address bar, only when
   the user presses the submission shortcut, and sends its canonical
   Twitter URL to the configured Nazurin service. It does not request tweet
   metadata or image resources, or send Twitter/X cookies, credentials, tweet
   text, or image data. Pending links are held only in memory for the queue.
 
-P² does not inspect, retain, or transmit the user's general browsing history.
+P2 does not inspect, retain, or transmit the user's general browsing history.
 It processes only Pixiv artwork information and selected Twitter/X tweet links
 needed for the preview and user-initiated Nazurin features.
 
 ## Permissions
 
-P² runs on `https://www.pixiv.net/*`, `https://x.com/*`,
+P2 runs on `https://www.pixiv.net/*`, `https://x.com/*`,
 `https://twitter.com/*`, and their `www` variants. It uses the `storage` permission for
 the settings described above. A Nazurin server origin is requested as an
 optional host permission only when the user saves that host. Remote Nazurin
@@ -48,7 +48,7 @@ services must use HTTPS; HTTP is accepted only for a service on `localhost` or
 `127.0.0.1`. Clearing the Nazurin configuration also removes the corresponding
 optional host permission.
 
-P² does not request access to browser tabs, cookies, downloads, notifications,
+P2 does not request access to browser tabs, cookies, downloads, notifications,
 or browsing history, and it does not download or execute remotely hosted code.
 
 ## Sharing and retention
@@ -60,7 +60,7 @@ or browsing history, and it does not download or execute remotely hosted code.
   explicit submission action. Nazurin may then download or retain the artwork
   according to the user's own service configuration. Its processing and
   retention are controlled by the user and governed by that service.
-- The developer of P² does not receive this data and does not sell, license, or
+- The developer of P2 does not receive this data and does not sell, license, or
   use it for advertising, credit decisions, or any unrelated purpose.
 
 Locally stored extension data is removed when the extension is uninstalled.
@@ -71,10 +71,10 @@ Nazurin service is governed by those services and the user's configuration.
 
 ## Limited Use
 
-P² uses and transfers information obtained through Chrome APIs only to provide
+P2 uses and transfers information obtained through Chrome APIs only to provide
 or improve its disclosed, user-facing features. Its use of this information
 complies with the Chrome Web Store User Data Policy, including the Limited Use
-requirements. P² does not transfer user data for advertising, sell it to data
+requirements. P2 does not transfer user data for advertising, sell it to data
 brokers, or permit the developer or other humans to read it, except where the
 user independently chooses to share information when requesting support.
 

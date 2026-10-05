@@ -1,14 +1,14 @@
-# P² — PixivPreview
+# P2: Pixiv Preview
 
 <p align="center">
-  <img src="assets/icon.png" width="128" alt="P² logo">
+  <img src="assets/icon.png" width="128" alt="P2 logo">
 </p>
 
 <p align="center">A lightweight hover preview extension for Pixiv.</p>
 
 <p align="center"><a href="README.md">简体中文</a> · English</p>
 
-P² (P squared) is a Chrome extension for previewing Pixiv artworks, with dedicated support for collecting images through [Nazurin](https://github.com/y-young/nazurin). 
+P2 is a Chrome extension for previewing Pixiv artworks, with dedicated support for collecting images through [Nazurin](https://github.com/y-young/nazurin).
 
 Browse artwork in your following feed, search results, rankings, bookmarks, and artist profiles without opening each artwork page. Previews work out of the box and can be used independently, with no Nazurin setup required.
 
@@ -24,9 +24,9 @@ Browse artwork in your following feed, search results, rankings, bookmarks, and 
 2. Open `chrome://extensions/` in Chrome.
 3. Enable **Developer mode** in the upper-right corner and click **Load unpacked**.
 4. Select the extracted folder containing `manifest.json`, not the ZIP file.
-5. Open or refresh a Pixiv page to start using P².
+5. Open or refresh a Pixiv page to start using P2.
 
-**To update**, extract the new version and replace the files in your installation folder, click P²’s reload button at `chrome://extensions/`, then refresh every open Pixiv tab. The top of the settings page shows the loaded version.
+**To update**, extract the new version and replace the files in your installation folder, click P2’s reload button at `chrome://extensions/`, then refresh every open Pixiv tab. The top of the settings page shows the loaded version.
 
 ## Get started
 
@@ -57,7 +57,7 @@ After unpinning, the window closes according to the preview linger behavior. Eac
 
 ### Settings
 
-Click P² in the Chrome toolbar to open settings. The button in the upper-right corner of settings opens them in a separate tab.
+Click P2 in the Chrome toolbar to open settings. The button in the upper-right corner of settings opens them in a separate tab.
 
 | Setting | Purpose and default |
 | --- | --- |
@@ -73,9 +73,9 @@ General settings save automatically and take effect immediately.
 
 ## Optional: connect Nazurin
 
-If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, P² can submit entire Pixiv artworks to it. Nazurin is not required for previews, page navigation, or pinned windows.
+If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, P2 can submit entire Pixiv artworks to it. Nazurin is not required for previews, page navigation, or pinned windows.
 
-1. Open P² settings and expand **Nazurin**.
+1. Open P2 settings and expand **Nazurin**.
 2. Enter your service’s **API Host** and **Bot Token** (Telegram Bot Token). Remote services must use HTTPS. HTTP is allowed only for a local service on `localhost` or `127.0.0.1`.
 3. Click **Save** and grant access to that service address.
 4. Click **Test connection**. The Nazurin button and shortcuts become available only after a successful test. Test again after changing the configuration.
@@ -88,7 +88,7 @@ If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, 
 
 If you change the submission shortcut, use `Shift` with the new key for batch submission. Multi-image works are submitted as a whole, not just the displayed image. Artworks already queued or being submitted are not added again. You can retry failures manually; navigating in the current tab cancels submissions that have not started.
 
-The Nazurin host and Bot Token are stored only on this device. When you submit by button or keyboard, P² sends only the canonical Pixiv artwork URL to that service; it does not send Pixiv cookies, login credentials, or image data. Saving the configuration requests access to that host. How Nazurin downloads, stores, and retains content depends on the user's own service configuration.
+The Nazurin host and Bot Token are stored only on this device. When you submit by button or keyboard, P2 sends only the canonical Pixiv artwork URL to that service; it does not send Pixiv cookies, login credentials, or image data. Saving the configuration requests access to that host. How Nazurin downloads, stores, and retains content depends on the user's own service configuration.
 
 **“Submitted to Nazurin” means the service accepted the request, not that the download is complete.** Nazurin handles downloading and saving. Check Telegram messages for the final result.
 
@@ -112,11 +112,11 @@ In Twitter/X's photo viewer (`/username/status/tweetID/photo/imageNumber`), the 
 
 2. **Why can’t I preview some artworks?**
 
-   Check that your current Pixiv account can view the artwork. P² does not bypass private, deleted, regional, or account access restrictions. Changes to Pixiv pages or interfaces may also require an extension update.
+   Check that your current Pixiv account can view the artwork. P2 does not bypass private, deleted, regional, or account access restrictions. Changes to Pixiv pages or interfaces may also require an extension update.
 
 3. **Why is the bookmark button unavailable?**
 
-   Pin the window first. If P² cannot find the artwork’s corresponding bookmark button on the current page, the preview’s bookmark tool stays disabled. You can open the artwork page and bookmark it there.
+   Pin the window first. If P2 cannot find the artwork’s corresponding bookmark button on the current page, the preview’s bookmark tool stays disabled. You can open the artwork page and bookmark it there.
 
 4. **Why do I still see the old behavior after updating?**
 
@@ -128,7 +128,7 @@ In Twitter/X's photo viewer (`/username/status/tweetID/photo/imageNumber`), the 
 
 ## Privacy and license
 
-P² runs on Pixiv and Twitter/X pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, user-selected tweet links, and settings on the device. Submissions send only the selected link, never cookies or image data. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
+P2 runs on Pixiv and Twitter/X pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, user-selected tweet links, and settings on the device. Submissions send only the selected link, never cookies or image data. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
 
 [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 

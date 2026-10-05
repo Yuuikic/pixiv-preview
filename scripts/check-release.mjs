@@ -59,4 +59,4 @@ for (const file of ["src/background.js", "src/content.js", "src/twitter.js", "sr
   if (result.status !== 0) fail(`${file} has invalid JavaScript\n${result.stderr.trim()}`);
 }
 
-if (!process.exitCode) console.log(`P² v${manifest.version} release metadata and runtime files are valid.`);
+if (!process.exitCode) console.log(`P2 v${manifest.version} release metadata and runtime files are valid.`);

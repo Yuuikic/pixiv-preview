@@ -60,10 +60,14 @@ test("the bundled Nazurin icon is the expected 48px PNG", () => {
   assert.equal(data.readUInt32BE(20), 48);
 });
 
-test("P² ships localized metadata, options, and deterministic icon sizes", () => {
+test("P2 ships localized metadata, options, and deterministic icon sizes", () => {
   for (const locale of ["en", "zh_CN", "zh_TW"]) {
     const messages = JSON.parse(read(`_locales/${locale}/messages.json`));
-    assert.equal(messages.extensionName.message, "P²");
+    assert.equal(messages.extensionName.message, {
+      en: "P2: Pixiv Preview",
+      zh_CN: "P2：Pixiv 悬停预览",
+      zh_TW: "P2：Pixiv 懸停預覽"
+    }[locale]);
   }
   assert.match(read("popup/popup.html"), /id="open-options"/);
   assert.match(read("options/options.html"), /data-settings-surface="options"/);

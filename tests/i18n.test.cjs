@@ -16,12 +16,12 @@ function load(language) {
 }
 
 test("uses English by default and for non-Chinese browser languages", () => {
-  assert.equal(load("en-US").t("settingsTitle"), "P² Settings");
+  assert.equal(load("en-US").t("settingsTitle"), "P2 Settings");
   assert.equal(load("ja-JP").t("loadingPreview"), "Loading preview…");
 });
 
 test("uses Chinese for simplified and traditional Chinese browser languages", () => {
-  assert.equal(load("zh-CN").t("settingsTitle"), "P² 设置");
+  assert.equal(load("zh-CN").t("settingsTitle"), "P2 设置");
   assert.equal(load("zh-TW").t("loadingPreview"), "正在加载预览图…");
 });
 

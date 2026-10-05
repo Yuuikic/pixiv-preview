@@ -1,5 +1,5 @@
 {
-  "extensionName": { "message": "P²" },
-  "extensionDescription": { "message": "P²：用於預覽 Pixiv 作品，並特別為配合 Nazurin 而設計的瀏覽器擴充功能。" },
-  "actionTitle": { "message": "P² 設定" }
+  "extensionName": { "message": "P2：Pixiv 懸停預覽" },
+  "extensionDescription": { "message": "P2：用於預覽 Pixiv 作品，並特別為配合 Nazurin 而設計的瀏覽器擴充功能。" },
+  "actionTitle": { "message": "P2 設定" }
 }

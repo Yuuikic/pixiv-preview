@@ -473,7 +473,7 @@
       stickyHint.title = t("stickyTitle", { key: settings.shortcutCodeLabel(stickyShortcutCode) });
       stickyHint.setAttribute("aria-pressed", "false");
       const close = createButton("pfp-close-button", t("closeCurrent"));
-      close.textContent = "×";
+      close.append(createSvgIcon("pfp-close-icon", "M6 6l12 12M18 6 6 18"));
       toolbar.append(status, pages, tools, stickyHint, close);
       root.append(stage, toolbar);
 

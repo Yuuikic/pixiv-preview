@@ -29,7 +29,7 @@ npm run package
 ```sh
 release_version=$(node -p "require('./manifest.json').version")
 npm run check -- --tag "v${release_version}"
-git tag -a "v${release_version}" -m "P² v${release_version}"
+git tag -a "v${release_version}" -m "P2 v${release_version}"
 git push origin HEAD
 git push origin "v${release_version}"
 ```
@@ -63,7 +63,7 @@ Packaging recreates `dist/` and produces `dist/P2-vX.Y.Z.zip`. The archive conta
 ```sh
 release_version=$(node -p "require('./manifest.json').version")
 npm run check -- --tag "v${release_version}"
-git tag -a "v${release_version}" -m "P² v${release_version}"
+git tag -a "v${release_version}" -m "P2 v${release_version}"
 git push origin HEAD
 git push origin "v${release_version}"
 ```

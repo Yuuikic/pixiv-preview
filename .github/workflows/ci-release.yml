@@ -52,7 +52,7 @@ jobs:
         run: |
           notes_file=".github/release-notes/$GITHUB_REF_NAME.md"
           if [ -f "$notes_file" ]; then
-            gh release create "$GITHUB_REF_NAME" release-artifacts/*.zip --verify-tag --notes-file "$notes_file" --title "P² $GITHUB_REF_NAME"
+            gh release create "$GITHUB_REF_NAME" release-artifacts/*.zip --verify-tag --notes-file "$notes_file" --title "P2 $GITHUB_REF_NAME"
           else
-            gh release create "$GITHUB_REF_NAME" release-artifacts/*.zip --verify-tag --generate-notes --title "P² $GITHUB_REF_NAME"
+            gh release create "$GITHUB_REF_NAME" release-artifacts/*.zip --verify-tag --generate-notes --title "P2 $GITHUB_REF_NAME"
           fi
