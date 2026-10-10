@@ -20,13 +20,30 @@ P2是一个用于预览 Pixiv 作品的 Chrome 扩展，特别支持使用 [Nazu
 
 ## 安装与更新
 
-1. 在本仓库的 Releases 页面下载 `P2-vX.Y.Z.zip`，解压到文件夹。
+### 从 Chrome 应用商店安装（推荐）
+
+1. 打开 [P2：Pixiv 悬停预览的 Chrome 应用商店页面](https://chromewebstore.google.com/detail/p2-pixiv-preview/mpdecaobbbnbfdbhnjnipbbepnokepbd)。
+2. 点击“添加至 Chrome”，按照浏览器提示完成安装。
+3. 打开或刷新 Pixiv 页面，即可开始使用 P2。
+
+通过 Chrome 应用商店安装后，Chrome 会在新版本通过审核并发布后自动更新扩展，无需手动下载文件或在扩展程序页面重新加载。
+
+> [!WARNING]
+> Chrome 应用商店中的每次版本更新都需要经过商店审核，审核和分发所需时间不固定。因此，商店版可能暂时晚于 GitHub Releases 中的最新版本。
+
+### 本地安装（开发者模式）
+
+本地安装适合测试 GitHub Releases 中的最新版本，或在 Chrome 应用商店不可用时使用。
+
+1. 在本仓库的 [Releases](https://github.com/Yuuikic/pixiv-preview/releases) 页面下载 `P2-vX.Y.Z.zip`，并解压到一个固定文件夹。
 2. 在 Chrome 地址栏打开 `chrome://extensions/`。
 3. 打开右上角的“开发者模式”，点击“加载已解压的扩展程序”。
 4. 选择解压后包含 `manifest.json` 的文件夹，不要选择 ZIP 文件。
-5. 打开或刷新 Pixiv 页面，即可开始使用。·
+5. 打开或刷新 Pixiv 页面，即可开始使用。
 
-**更新时**，将新版文件解压并替换到原安装文件夹，在 `chrome://extensions/` 点击 P2 的“重新加载”，然后刷新所有已打开的 Pixiv 标签页。设置页顶部可查看当前加载的版本。
+**更新本地安装版时**，下载并解压新版文件，替换原安装文件夹中的内容，然后在 `chrome://extensions/` 中点击 P2 的“重新加载”，并刷新所有已打开的 Pixiv 标签页。设置页顶部可查看当前加载的版本。
+
+请勿同时启用商店版和本地安装版，否则两个版本可能会同时在 Pixiv 页面中运行。
 
 ## 开始使用
 
@@ -133,3 +150,8 @@ P2 在 Pixiv 和 Twitter/X 页面运行，不收集分析数据，也不会把�
 [隐私政策](PRIVACY.md) · [MIT 许可证](LICENSE) · [第三方资源声明](THIRD_PARTY_NOTICES.md)
 
 开发与发布说明见 [DEVELOPMENT.md](DEVELOPMENT.md)。
+
+## 鸣谢
+
+- [Nazurin](https://github.com/y-young/nazurin)：本项目依赖的插画收集服务
+- [Nazurin 扩展程序](https://github.com/y-young/nazurin-extension)：提供集成功能所使用的图标，以及功能逻辑参考

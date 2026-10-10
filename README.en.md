@@ -20,13 +20,30 @@ Browse artwork in your following feed, search results, rankings, bookmarks, and 
 
 ## Install and update
 
-1. Download `P2-vX.Y.Z.zip` from this repository’s Releases page and extract it into a folder.
+### Install from the Chrome Web Store (recommended)
+
+1. Open the [P2: Pixiv Preview listing on the Chrome Web Store](https://chromewebstore.google.com/detail/p2-pixiv-preview/mpdecaobbbnbfdbhnjnipbbepnokepbd).
+2. Click **Add to Chrome** and follow the browser prompts.
+3. Open or refresh a Pixiv page to start using P2.
+
+When installed from the Chrome Web Store, P2 is updated automatically by Chrome after a new version has been reviewed and published. You do not need to download files or reload the extension manually.
+
+> [!WARNING]
+> Every Chrome Web Store update must pass store review, and review and distribution times may vary. The store version may therefore temporarily lag behind the latest GitHub Release.
+
+### Install locally (Developer mode)
+
+Local installation is useful for testing the latest GitHub Release or when the Chrome Web Store is unavailable.
+
+1. Download `P2-vX.Y.Z.zip` from this repository’s [Releases](https://github.com/Yuuikic/pixiv-preview/releases) page and extract it to a permanent folder.
 2. Open `chrome://extensions/` in Chrome.
 3. Enable **Developer mode** in the upper-right corner and click **Load unpacked**.
 4. Select the extracted folder containing `manifest.json`, not the ZIP file.
 5. Open or refresh a Pixiv page to start using P2.
 
-**To update**, extract the new version and replace the files in your installation folder, click P2’s reload button at `chrome://extensions/`, then refresh every open Pixiv tab. The top of the settings page shows the loaded version.
+**To update a local installation**, download and extract the new version, replace the contents of the original installation folder, click P2’s **Reload** button at `chrome://extensions/`, and refresh every open Pixiv tab. The current version is shown at the top of the settings page.
+
+Do not enable the Chrome Web Store and locally installed versions at the same time, as both copies may run on the same Pixiv page.
 
 ## Get started
 
@@ -133,3 +150,8 @@ P2 runs on Pixiv and Twitter/X pages, collects no analytics, and sends no user d
 [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
 For development and release instructions, see [DEVELOPMENT.md](DEVELOPMENT.md#english).
+
+## Acknowledgements
+
+- [Nazurin](https://github.com/y-young/nazurin): The artwork collection service this project depends on
+- [Nazurin Extension](https://github.com/y-young/nazurin-extension): Provided the icon used by the integration and served as a reference for its functional logic
