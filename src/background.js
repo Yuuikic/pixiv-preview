@@ -23,7 +23,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   const pixivSender = isTrustedPixivSender(sender);
   const twitterSender = isTrustedTwitterSender(sender);
-  if (!pixivSender && !twitterSender) return undefined;
+  const pixivisionSender = isTrustedPixivisionSender(sender);
+  if (!pixivSender && !twitterSender && !pixivisionSender) return undefined;
 
   if (message.type === "pfp-nazurin-twitter-submit") {
     if (!twitterSender) return undefined;
@@ -52,7 +53,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "pfp-nazurin-submit") {
-    if (!pixivSender) return undefined;
+    if (!pixivSender && !pixivisionSender) return undefined;
     handleNazurinRequest({
       illustId: message.illustId,
       requestId: message.requestId,
@@ -241,6 +242,16 @@ function isTrustedExtensionSender(sender) {
     const url = new URL(sender.url || "");
     return sender.id === chrome.runtime.id && url.protocol === "chrome-extension:" &&
       url.hostname === chrome.runtime.id;
+  } catch {
+    return false;
+  }
+}
+
+function isTrustedPixivisionSender(sender) {
+  try {
+    const url = new URL(sender.url || "");
+    return sender.id === chrome.runtime.id && url.protocol === "https:" &&
+      ["www.pixivision.net", "pixivision.net"].includes(url.hostname);
   } catch {
     return false;
   }

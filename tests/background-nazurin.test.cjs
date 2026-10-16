@@ -160,6 +160,58 @@ test("Twitter submissions retain connection and permission checks", async () => 
   }
 });
 
+test("pixivision submits only canonical Pixiv artwork URLs", async () => {
+  for (const hostname of ["www.pixivision.net", "pixivision.net"]) {
+    const harness = createHarness();
+    const result = await harness.dispatch({
+      type: "pfp-nazurin-submit", illustId: "142138569", requestId: "pv-1",
+      url: "https://attacker.invalid/ignored"
+    }, `https://${hostname}/zh/a/11692`);
+    assert.deepEqual(result, { ok: true, status: "accepted" });
+    assert.equal(harness.fetchCalls.length, 1);
+    assert.deepEqual(JSON.parse(harness.fetchCalls[0][1].body), {
+      url: "https://www.pixiv.net/artworks/142138569"
+    });
+  }
+});
+
+test("pixivision retains Nazurin configuration, permission, and ID validation", async () => {
+  for (const [options, status] of [
+    [{ verified: false }, "not-verified"], [{ permitted: false }, "permission-missing"],
+    [{ host: null }, "not-configured"]
+  ]) {
+    const harness = createHarness(options);
+    assert.deepEqual(await harness.dispatch({
+      type: "pfp-nazurin-submit", illustId: "142138569", requestId: "pv-2"
+    }, "https://www.pixivision.net/zh/a/11692"), { ok: false, status });
+    assert.equal(harness.fetchCalls.length, 0);
+  }
+  const harness = createHarness();
+  for (const illustId of ["https://evil.example/", "123?bad=1", "", null]) {
+    assert.deepEqual(await harness.dispatch({
+      type: "pfp-nazurin-submit", illustId, requestId: "pv-invalid"
+    }, "https://www.pixivision.net/zh/a/11692"), { ok: false, status: "invalid-response" });
+  }
+  assert.equal(harness.fetchCalls.length, 0);
+});
+
+test("pixivision cannot fetch preview metadata or submit tweets; rejects other origins", async () => {
+  const harness = createHarness();
+  for (const type of ["pfp-get-pages", "pfp-nazurin-twitter-submit", "pfp-nazurin-test"]) {
+    await assert.rejects(harness.dispatch({
+      type, illustId: "123", requestId: "pv-route", tweetUrl: "https://x.com/a/status/1"
+    }, "https://www.pixivision.net/zh/a/11692"), /not handled/);
+  }
+  for (const sender of [
+    "https://www.pixivision.net.evil.example/", "http://www.pixivision.net/", "https://evil.example/"
+  ]) {
+    await assert.rejects(harness.dispatch({
+      type: "pfp-nazurin-submit", illustId: "123", requestId: "pv-sender"
+    }, sender), /not handled/);
+  }
+  assert.equal(harness.fetchCalls.length, 0);
+});
+
 test("rejects arbitrary URLs and malformed tweet paths", async () => {
   for (const tweetUrl of [
     "https://evil.example/artist/status/123", "https://x.com.evil.example/artist/status/123",

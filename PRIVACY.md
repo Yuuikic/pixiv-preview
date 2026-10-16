@@ -1,6 +1,6 @@
 # P2 Privacy Policy
 
-Last updated: 2026-10-03
+Last updated: 2026-10-16
 
 P2 does not operate a developer-controlled server, and the developer does not
 receive or retain data from the extension. To provide its user-facing features,
@@ -33,15 +33,22 @@ service as described below. P2 does not collect analytics or telemetry.
   Twitter URL to the configured Nazurin service. It does not request tweet
   metadata or image resources, or send Twitter/X cookies, credentials, tweet
   text, or image data. Pending links are held only in memory for the queue.
+- On pixivision pages, pressing the submission shortcut while hovering an
+  artwork reads its Pixiv artwork identifier from the page and sends only the
+  canonical Pixiv artwork URL to the configured Nazurin service. P2 does not
+  request artwork metadata or images, display previews, or send cookies or
+  image data on these pages. Pending links are held only in memory.
 
 P2 does not inspect, retain, or transmit the user's general browsing history.
-It processes only Pixiv artwork information and selected Twitter/X tweet links
+It processes only Pixiv artwork information (including links selected on
+pixivision) and selected Twitter/X tweet links
 needed for the preview and user-initiated Nazurin features.
 
 ## Permissions
 
 P2 runs on `https://www.pixiv.net/*`, `https://x.com/*`,
-`https://twitter.com/*`, and their `www` variants. It uses the `storage` permission for
+`https://twitter.com/*`, `https://pixivision.net/*`, and their `www` variants.
+It uses the `storage` permission for
 the settings described above. A Nazurin server origin is requested as an
 optional host permission only when the user saves that host. Remote Nazurin
 services must use HTTPS; HTTP is accepted only for a service on `localhost` or

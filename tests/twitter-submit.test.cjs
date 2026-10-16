@@ -36,6 +36,7 @@ function harness({ shortcut = "KeyD", response = { ok: true, status: "accepted" 
     P2I18n: { t: (key) => key }
   });
   vm.runInContext(read("src/settings.js"), context);
+  vm.runInContext(read("src/link-submit.js"), context);
   vm.runInContext(read("src/twitter.js"), context);
 
   function article(entries) {
@@ -210,6 +211,6 @@ test("reports configuration errors and allows retry after configuring the servic
 test("Twitter pages load only link-submission scripts and notification styles", () => {
   const manifest = JSON.parse(read("manifest.json"));
   const entry = manifest.content_scripts.find((entry) => entry.matches.includes("https://x.com/*"));
-  assert.deepEqual(entry.js, ["src/settings.js", "src/i18n.js", "src/twitter.js"]);
-  assert.deepEqual(entry.css, ["src/twitter.css"]);
+  assert.deepEqual(entry.js, ["src/settings.js", "src/i18n.js", "src/link-submit.js", "src/twitter.js"]);
+  assert.deepEqual(entry.css, ["src/link-submit.css"]);
 });

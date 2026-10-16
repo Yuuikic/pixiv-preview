@@ -109,6 +109,12 @@ The Nazurin host and Bot Token are stored only on this device. When you submit b
 
 **“Submitted to Nazurin” means the service accepted the request, not that the download is complete.** Nazurin handles downloading and saving. Check Telegram messages for the final result.
 
+### pixivision artwork shortcut
+
+On a pixivision article, hover an artwork image or its information area and press `D` to submit its Pixiv link to your configured Nazurin service. Save the configuration and pass the connection test first. If you customized the submission shortcut, use that key instead.
+
+This feature submits only the artwork link and does not show previews. Tracking parameters are removed. Rapid submissions are queued in order, and pending artworks are deduplicated. A toast shows the result; press the key again to retry a failure. Typing, modifier keys, and held keys do not trigger submission. `Shift+D` batch submission is not available here. After updating a locally loaded extension, reload it and refresh your open pixivision tabs.
+
 ### Twitter/X tweet shortcut
 
 **This feature is experimental. Please do not rely on it too heavily. It may be removed in future versions, or it may be retained.**
@@ -145,7 +151,7 @@ In Twitter/X's photo viewer (`/username/status/tweetID/photo/imageNumber`), the 
 
 ## Privacy and license
 
-P2 runs on Pixiv and Twitter/X pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, user-selected tweet links, and settings on the device. Submissions send only the selected link, never cookies or image data. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
+P2 runs on Pixiv, pixivision, and Twitter/X pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, user-selected artwork or tweet links, and settings on the device. Submissions send only the selected link, never cookies or image data. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
 
 [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
