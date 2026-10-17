@@ -85,12 +85,13 @@ Click P2 in the Chrome toolbar to open settings. The button in the upper-right c
 | Auto-arrange pinned windows | Off by default. When enabled, automatically resizes and places windows in the empty space on either side of artwork thumbnails when pinned |
 | Keyboard shortcuts | Listed as pin, copy artwork link, and submit to Nazurin; defaults are `S`, `C`, and `D`. Use distinct letters or numbers to customize them |
 | Hide preview after successful Nazurin submission | Off by default; close the matching preview once Nazurin accepts its artwork link, whether submitted by shortcut or icon button |
+| Convert Konachan .net to .com on submission | On by default; converts only the URL sent to Nazurin, without navigating. When off, .net links are not sent |
 
 General settings save automatically and take effect immediately.
 
 ## Optional: connect Nazurin
 
-If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, P2 can submit entire Pixiv artworks to it. Nazurin is not required for previews, page navigation, or pinned windows.
+If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, P2 can submit entire Pixiv artworks or links from other supported sites. Nazurin is not required for previews, page navigation, or pinned windows.
 
 1. Open P2 settings and expand **Nazurin**.
 2. Enter your service’s **API Host** and **Bot Token** (Telegram Bot Token). Remote services must use HTTPS. HTTP is allowed only for a local service on `localhost` or `127.0.0.1`.
@@ -127,6 +128,33 @@ Links are normalized to `https://twitter.com/username/status/tweetID`, without t
 
 In Twitter/X's photo viewer (`/username/status/tweetID/photo/imageNumber`), the shortcut always submits the tweet identified by the address bar.
 
+### D shortcut on other Nazurin sites
+
+The following HTTPS pages use generic link submission. Both the source page and the submitted target must be on the fixed allowlist; this does not automatically support every Moebooru installation.
+
+| Site | Page domains |
+| --- | --- |
+| yande.re / Konachan / Lolibooru | `yande.re`, `konachan.com`, `konachan.net`, `lolibooru.moe`, and their `www` aliases |
+| Danbooru / Safebooru | `danbooru.donmai.us`, `safebooru.donmai.us`; not `safebooru.org` |
+| Zerochan / Gelbooru | `zerochan.net`, `gelbooru.com`, and their `www` aliases |
+| ArtStation / DeviantArt / Lofter | `artstation.com`, `deviantart.com`, `lofter.com`, and single-level user subdomains |
+| Wallhaven | `wallhaven.cc`, `www.wallhaven.cc`, `whvn.cc` |
+| Bilibili dynamics | `bilibili.com`, `www.bilibili.com`, `t.bilibili.com` |
+| Weibo | `weibo.com`, `weibo.cn`, their `www` and `m` aliases, and `share.api.weibo.cn` |
+| Kemono | `kemono.party`, `kemono.su`, `kemono.cr` |
+| Telegraph / Bluesky | `telegra.ph`, `graph.org`, `bsky.app` |
+| Additional Pixiv / X entry points | `pixiv.net`, `mobile.x.com`, `mobile.twitter.com` |
+
+After saving and testing your Nazurin configuration, press `D` (or your custom submission key) to submit the supported `<a href>` link under the pointer, including images inside links. If there is no supported link, submit the current page URL. Empty card areas, image `src` values, JavaScript click handlers, and hidden data are not interpreted. There are no previews or additional metadata requests. Audited image/CDN URLs can be submitted as targets, but standalone CDN pages do not receive the shortcut.
+
+Paths, query strings, and fragments are preserved and sent to your configured Nazurin service. HTTP/HTTPS targets require standard ports and cannot contain embedded usernames or passwords. Generic mode checks the site, not the artwork path: a homepage or listing may be submitted but may not be collectable. Collection depends on your Nazurin version, site configuration, and URL parser; check Telegram for the final result.
+
+Konachan `.net -> .com` conversion is on by default and changes only the submitted URL, not your browser location. When off, selecting a `.net` target shows an error without sending it or falling back to the current page. You can still submit `.com` links from a `.net` page. Both settings surfaces offer the switch; resetting defaults enables it again without clearing Host/Token.
+
+Generic mode does not intercept shortcuts before Nazurin is configured and verified. Typing, composition, modifiers, and held keys do not trigger submission; `Shift+D` is not supported. Rapid submissions are serialized, with pending duplicates suppressed, including equivalent Konachan .net/.com URLs. Retry a failed item by pressing the key again. Leaving the page clears unsent work. The specialized behavior on `www.pixiv.net`, the X main sites, and pixivision is unchanged, without a new current-page fallback.
+
+Reload the extension and refresh open supported pages after updating. Chrome may ask you to approve access to the additional sites. These permissions support the user-triggered features above; they do not grant all-site content scripts or browsing-history access.
+
 ## Frequently asked questions
 
 1. **Why aren’t animations playing?**
@@ -151,7 +179,7 @@ In Twitter/X's photo viewer (`/username/status/tweetID/photo/imageNumber`), the 
 
 ## Privacy and license
 
-P2 runs on Pixiv, pixivision, and Twitter/X pages, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, user-selected artwork or tweet links, and settings on the device. Submissions send only the selected link, never cookies or image data. General preview settings may sync through Chrome; the Nazurin address and Token stay in local storage. Access to a Nazurin service is requested only when you configure it, and clearing the configuration removes that permission.
+P2 runs on Pixiv, pixivision, Twitter/X, and the allowlisted sites above, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, explicitly selected links or current-page URLs, and settings on the device. Submissions send only the selected link, never cookies or image data. General settings, including Konachan conversion, may sync through Chrome; the Nazurin address and Token stay in local storage. Optional access to a Nazurin service is requested only when you configure it; clearing the configuration removes that optional permission, not the extension's fixed site permissions.
 
 [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 

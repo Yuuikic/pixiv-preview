@@ -1,8 +1,9 @@
 "use strict";
 
-importScripts("settings.js");
+importScripts("settings.js", "nazurin-sites.js");
 
 const settings = globalThis.PixivPreviewSettings;
+const sites = globalThis.P2NazurinSites;
 const activePageRequests = new Map();
 const activeNazurinRequests = new Map();
 
@@ -24,6 +25,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const pixivSender = isTrustedPixivSender(sender);
   const twitterSender = isTrustedTwitterSender(sender);
   const pixivisionSender = isTrustedPixivisionSender(sender);
+  const genericSender = sender.id === chrome.runtime.id && sender.frameId === 0 &&
+    sites.isGenericSourceUrl(sender.url);
+
+  if (message.type === "pfp-nazurin-link-submit") {
+    if (!genericSender) return undefined;
+    handleNazurinRequest({
+      linkUrl: message.url, requestId: message.requestId, testOnly: false, genericLink: true
+    }, sendResponse);
+    return true;
+  }
+
+  if (message.type === "pfp-nazurin-status" && genericSender) {
+    getNazurinStatus().then(sendResponse, () => sendResponse({ configured: false, verified: false }));
+    return true;
+  }
   if (!pixivSender && !twitterSender && !pixivisionSender) return undefined;
 
   if (message.type === "pfp-nazurin-twitter-submit") {
@@ -86,13 +102,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-async function handleNazurinRequest({ illustId, tweetUrl, requestId, testOnly }, sendResponse) {
+async function handleNazurinRequest({ illustId, tweetUrl, linkUrl, requestId, testOnly, genericLink = false }, sendResponse) {
   const normalizedRequestId = normalizeRequestId(requestId);
-  const artworkUrl = testOnly ? null : tweetUrl !== undefined
+  const artworkUrl = testOnly ? null : genericLink ? sites.targetUrl(linkUrl) : tweetUrl !== undefined
     ? normalizeTweetUrl(tweetUrl)
     : normalizeIllustId(illustId) && `https://www.pixiv.net/artworks/${illustId}`;
   if (!normalizedRequestId || (!testOnly && !artworkUrl)) {
-    sendResponse(nazurinFailure("invalid-response"));
+    sendResponse(nazurinFailure(genericLink && normalizedRequestId ? "unsupported-url" : "invalid-response"));
     return;
   }
 
@@ -102,6 +118,7 @@ async function handleNazurinRequest({ illustId, tweetUrl, requestId, testOnly },
     sendResponse(await performNazurinRequest({
       artworkUrl,
       testOnly,
+      genericLink,
       signal: controller.signal
     }));
   } catch {
@@ -111,7 +128,7 @@ async function handleNazurinRequest({ illustId, tweetUrl, requestId, testOnly },
   }
 }
 
-async function performNazurinRequest({ artworkUrl, testOnly, signal }) {
+async function performNazurinRequest({ artworkUrl, testOnly, genericLink = false, signal }) {
   const stored = await chrome.storage.local.get([
     settings.NAZURIN_API_HOST_STORAGE_KEY,
     settings.NAZURIN_API_TOKEN_STORAGE_KEY,
@@ -128,6 +145,15 @@ async function performNazurinRequest({ artworkUrl, testOnly, signal }) {
 
   if (!testOnly && stored[settings.NAZURIN_VERIFIED_STORAGE_KEY] !== true) {
     return nazurinFailure("not-verified");
+  }
+
+  if (genericLink) {
+    const preferences = await chrome.storage.sync.get({
+      [settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]: settings.DEFAULT_NAZURIN_KONACHAN_NET_TO_COM
+    });
+    artworkUrl = sites.normalizeTargetUrl(artworkUrl, settings.normalizeKonachanNetToCom(
+      preferences[settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]));
+    if (!artworkUrl) return nazurinFailure("konachan-conversion-disabled");
   }
 
   const timeoutController = new AbortController();

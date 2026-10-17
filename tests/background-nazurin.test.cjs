@@ -18,7 +18,8 @@ function createHarness({
   permitted = true,
   response = { ok: true, status: 200, json: async () => ({ error: 0 }) },
   fetchImpl = null,
-  timeoutImmediately = false
+  timeoutImmediately = false,
+  konachanNetToCom = true
 } = {}) {
   let listener;
   let installedListener;
@@ -50,6 +51,9 @@ function createHarness({
         onMessage: { addListener(callback) { listener = callback; } }
       },
       storage: {
+        sync: {
+          async get() { return { nazurinKonachanNetToCom: konachanNetToCom }; }
+        },
         local: {
           async get() {
             return { nazurinApiHost: host, nazurinApiToken: token, nazurinConnectionVerified: verified };
@@ -66,17 +70,22 @@ function createHarness({
     }
   });
   context.globalThis = context;
-  context.importScripts = (file) => {
-    assert.equal(file, "settings.js");
-    vm.runInContext(settingsSource, context, { filename: "settings.js" });
+  context.importScripts = (...files) => {
+    for (const file of files) {
+      assert.ok(["settings.js", "nazurin-sites.js"].includes(file));
+      vm.runInContext(file === "settings.js" ? settingsSource :
+        fs.readFileSync(path.join(projectRoot, "src", file), "utf8"), context, { filename: file });
+    }
   };
   vm.runInContext(backgroundSource, context, { filename: "background.js" });
 
-  function dispatch(message, senderUrl = "https://www.pixiv.net/bookmark_new_illust.php") {
+  function dispatch(message, senderUrl = "https://www.pixiv.net/bookmark_new_illust.php", senderOverrides = {}) {
     return new Promise((resolve, reject) => {
       const handled = listener(message, {
         id: "pixiv-preview-test",
-        url: senderUrl
+        url: senderUrl,
+        frameId: 0,
+        ...senderOverrides
       }, (response) => resolve(JSON.parse(JSON.stringify(response))));
       if (handled !== true) reject(new Error("Message was not handled"));
     });
@@ -84,6 +93,7 @@ function createHarness({
 
   return {
     dispatch, fetchCalls, fetchErrors,
+    setConversion(value) { konachanNetToCom = value; },
     install(reason) { installedListener({ reason }); },
     get optionsPageOpenCount() { return optionsPageOpenCount; }
   };
@@ -312,6 +322,18 @@ test("works end-to-end against a local mock Nazurin HTTP server", async (t) => {
     url: "/local:token/api",
     body: JSON.stringify({ url: "https://www.pixiv.net/artworks/987654" })
   }]);
+  for (const [source, url, expected] of [
+    ["https://yande.re/", "https://yande.re/post/show/42", "https://yande.re/post/show/42"],
+    ["https://konachan.net/", "https://konachan.net/post/show/42", "https://konachan.com/post/show/42"],
+    ["https://wallhaven.cc/", "https://wallhaven.cc/w/abc123", "https://wallhaven.cc/w/abc123"]
+  ]) {
+    assert.deepEqual(await localHarness.dispatch({
+      type: "pfp-nazurin-link-submit", url, requestId: "local-generic"
+    }, source), { ok: true, status: "accepted" });
+    assert.deepEqual(requests.at(-1), {
+      method: "POST", url: "/local:token/api", body: JSON.stringify({ url: expected })
+    });
+  }
 });
 
 test("normalizes HTTP, API, and malformed response failures", async (t) => {
@@ -359,4 +381,137 @@ test("normalizes HTTP, API, and malformed response failures", async (t) => {
       type: "pfp-nazurin-submit", illustId: "1", requestId: "timeout-1"
     }), { ok: false, status: "timeout" });
   });
+});
+
+test("generic submissions forward supported HTTP(S) URLs without dropping query or fragment", async () => {
+  const cases = [
+    ["https://yande.re/post", "https://yande.re/post/show/42?tags=a%20b#image"],
+    ["https://danbooru.donmai.us/", "https://safebooru.donmai.us/posts/42"],
+    ["https://konachan.net/post", "https://konachan.com/post/show/42"],
+    ["https://lolibooru.moe/", "https://lolibooru.moe/post/show/42"],
+    ["https://www.zerochan.net/", "https://static.zerochan.net/A.full.42.jpg"],
+    ["https://gelbooru.com/", "https://gelbooru.com/index.php?page=post&s=view&id=42#image"],
+    ["https://catzz.artstation.com/", "https://www.artstation.com/artwork/abc"],
+    ["https://wallhaven.cc/", "http://whvn.cc/abc123"],
+    ["https://t.bilibili.com/", "https://www.bilibili.com/opus/42"],
+    ["https://m.weibo.cn/", "https://weibo.cn/appurl?scheme=x&lfid=42"],
+    ["https://artist.deviantart.com/", "https://www.deviantart.com/artist/art/title-42"],
+    ["https://artist.lofter.com/", "https://artist.lofter.com/post/abc_def"],
+    ["https://kemono.cr/", "https://kemono.su/fanbox/user/1/post/2/revision/3"],
+    ["https://telegra.ph/", "https://graph.org/Page-01-01"],
+    ["https://bsky.app/", "https://bsky.app/profile/artist.bsky.social/post/abc"],
+    ["https://pixiv.net/", "https://www.pixiv.net/artworks/42?x=1#image"],
+    ["https://mobile.twitter.com/", "https://x.com/artist/status/42?x=1#image"]
+  ];
+  for (const [source, url] of cases) {
+    const h = createHarness();
+    assert.deepEqual(await h.dispatch({
+      type: "pfp-nazurin-link-submit", url, requestId: "generic-valid"
+    }, source), { ok: true, status: "accepted" }, source);
+    assert.equal(h.fetchCalls.length, 1);
+    assert.deepEqual(JSON.parse(h.fetchCalls[0][1].body), { url });
+    assert.deepEqual(await h.dispatch({ type: "pfp-nazurin-status" }, source), {
+      configured: true, verified: true
+    });
+  }
+});
+
+test("generic sources cannot access legacy routes or impersonate extension pages and top frames", async () => {
+  const h = createHarness();
+  const submission = { type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "generic-security" };
+  for (const source of [
+    "https://evil.example/", "http://yande.re/", "https://yande.re.evil.example/",
+    "https://www.pixiv.net/", "https://x.com/", "https://www.pixivision.net/",
+    "https://cdn.donmai.us/", "https://user:pass@yande.re/", "https://yande.re:444/"
+  ]) await assert.rejects(h.dispatch(submission, source), /not handled/, source);
+  for (const sender of [{ id: "other-extension" }, { frameId: 1 }, { frameId: undefined }]) {
+    await assert.rejects(h.dispatch(submission, "https://yande.re/", sender), /not handled/);
+    await assert.rejects(h.dispatch({ type: "pfp-nazurin-status" }, "https://yande.re/", sender), /not handled/);
+  }
+  for (const type of [
+    "pfp-get-pages", "pfp-cancel-pages", "pfp-nazurin-submit", "pfp-nazurin-twitter-submit",
+    "pfp-nazurin-test", "pfp-cancel-nazurin"
+  ]) {
+    await assert.rejects(h.dispatch({
+      type, illustId: "42", tweetUrl: "https://x.com/a/status/42", requestId: "generic-route"
+    }, "https://yande.re/"), /not handled/, type);
+  }
+  assert.equal(h.fetchCalls.length, 0);
+});
+
+test("generic route rejects unsafe targets and malformed request IDs before fetching", async () => {
+  const h = createHarness();
+  for (const url of [
+    "https://evil.example/", "https://safebooru.org/", "https://yande.re.evil.example/",
+    "https://space.bilibili.com/", "https://www.pixivision.net/zh/a/42", "/post/show/42",
+    "javascript:alert(1)", "file:///tmp/test", "https://user:pass@yande.re/",
+    "https://yande.re:444/", null, {}
+  ]) {
+    assert.deepEqual(await h.dispatch({
+      type: "pfp-nazurin-link-submit", url, requestId: "generic-invalid"
+    }, "https://yande.re/"), { ok: false, status: "unsupported-url" });
+  }
+  for (const requestId of [null, "", {}, "bad/request", "x".repeat(81)]) {
+    assert.deepEqual(await h.dispatch({
+      type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId
+    }, "https://yande.re/"), { ok: false, status: "invalid-response" });
+  }
+  assert.equal(h.fetchCalls.length, 0);
+});
+
+test("generic route retains configuration, verification and API permission checks", async () => {
+  for (const [options, status] of [
+    [{ host: null }, "not-configured"], [{ token: null }, "not-configured"],
+    [{ verified: false }, "not-verified"], [{ permitted: false }, "permission-missing"]
+  ]) {
+    const h = createHarness(options);
+    assert.deepEqual(await h.dispatch({
+      type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "generic-config"
+    }, "https://yande.re/"), { ok: false, status });
+    assert.equal(h.fetchCalls.length, 0);
+  }
+});
+
+test("background applies the latest Konachan preference and never posts raw .net when disabled", async () => {
+  const h = createHarness();
+  h.setConversion(undefined);
+  const message = {
+    type: "pfp-nazurin-link-submit", url: "https://www.konachan.net/post/show/42?tags=a%20b#image",
+    requestId: "konachan-convert"
+  };
+  const source = "https://konachan.net/post";
+  assert.deepEqual(await h.dispatch(message, source), { ok: true, status: "accepted" });
+  const expected = "https://konachan.com/post/show/42?tags=a%20b#image";
+  assert.equal(JSON.parse(h.fetchCalls[0][1].body).url, expected);
+  h.setConversion(false);
+  assert.deepEqual(await h.dispatch(message, source), { ok: false, status: "konachan-conversion-disabled" });
+  assert.equal(h.fetchCalls.length, 1);
+  assert.deepEqual(await h.dispatch({ ...message, url: expected }, source), { ok: true, status: "accepted" });
+  assert.equal(h.fetchCalls.length, 2);
+  h.setConversion(true);
+  assert.deepEqual(await h.dispatch(message, source), { ok: true, status: "accepted" });
+  assert.equal(JSON.parse(h.fetchCalls[2][1].body).url, expected);
+  const awaitingConfiguration = h.dispatch(message, source);
+  h.setConversion(false);
+  assert.deepEqual(await awaitingConfiguration, { ok: false, status: "konachan-conversion-disabled" });
+  assert.equal(h.fetchCalls.length, 3);
+});
+
+test("generic route uses the same API/timeout error responses as legacy submissions", async () => {
+  const message = { type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "generic-error" };
+  for (const [options, status] of [
+    [{ response: { ok: false, status: 503 } }, "http-error"],
+    [{ response: { ok: true, json: async () => ({ error: 3 }) } }, "api-error"],
+    [{ response: { ok: true, json: async () => ({}) } }, "invalid-response"],
+    [{ response: { ok: true, json: async () => { throw new Error("invalid json"); } } }, "invalid-response"],
+    [{ fetchImpl: async () => { throw new TypeError("offline"); } }, "network-error"],
+    [{ timeoutImmediately: true, fetchImpl: (_url, options) => new Promise((_resolve, reject) => {
+      options.signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+    }) }, "timeout"]
+  ]) {
+    const h = createHarness(options);
+    const result = await h.dispatch(message, "https://yande.re/");
+    assert.equal(result.ok, false);
+    assert.equal(result.status, status);
+  }
 });

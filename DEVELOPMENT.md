@@ -16,7 +16,9 @@ npm run check
 npm run package
 ```
 
-测试验证扩展行为；发布检查验证版本元数据、必要文件和 JavaScript 语法。打包前也会执行发布检查。
+测试验证扩展行为；发布检查验证版本元数据、必要文件、JavaScript 语法，以及站点注册表与清单权限的一致性。打包前也会执行发布检查。
+
+新增 Nazurin 站点时，先确认上游服务端支持，更新 `src/nazurin-sites.js` 中的固定规则，再同步更新清单的页面匹配和权限、中英文说明及测试。通用适配器不注入现有 Pixiv/X/pixivision 专用范围，也不在图片/CDN 页面注入。测试包括临时本地 HTTP 模拟服务，需要允许监听 127.0.0.1；它只验证提交协议，不代表真实收藏或 Telegram 通知完成。
 
 打包会重新生成 `dist/`，产物为 `dist/P2-vX.Y.Z.zip`。压缩包只包含运行文件、许可证、隐私政策和第三方声明，不包含测试与开发文件。
 
@@ -50,7 +52,9 @@ npm run check
 npm run package
 ```
 
-Tests verify extension behavior. The release check validates version metadata, required files, and JavaScript syntax. Packaging also runs the release check first.
+Tests verify extension behavior. The release check validates version metadata, required files, JavaScript syntax, and consistency between the site registry and manifest permissions. Packaging also runs the release check first.
+
+Before adding a Nazurin site, confirm upstream server support, update the fixed rules in `src/nazurin-sites.js`, and synchronize manifest matches/permissions, both READMEs, and tests. Generic scripts must not overlap specialized Pixiv/X/pixivision matches or run on image/CDN pages. Tests include a temporary HTTP mock server that requires listening on 127.0.0.1; it verifies submission transport, not actual collection or Telegram delivery.
 
 Packaging recreates `dist/` and produces `dist/P2-vX.Y.Z.zip`. The archive contains only runtime files, the license, privacy policy, and third-party notices. Tests and development files are excluded.
 

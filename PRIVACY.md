@@ -1,6 +1,6 @@
 # P2 Privacy Policy
 
-Last updated: 2026-10-16
+Last updated: 2026-10-17
 
 P2 does not operate a developer-controlled server, and the developer does not
 receive or retain data from the extension. To provide its user-facing features,
@@ -10,13 +10,13 @@ service as described below. P2 does not collect analytics or telemetry.
 
 ## Data processed by the extension
 
-- Preview preferences and keyboard shortcuts are stored with
-  `chrome.storage.sync`, so Chrome may synchronize them through the user's
+- Preview preferences, keyboard shortcuts, and the Konachan URL-conversion switch
+  are stored with `chrome.storage.sync`, so Chrome may synchronize them through the user's
   signed-in browser profile.
 - An optional Nazurin API host and Telegram Bot Token are stored only with
   `chrome.storage.local`. They are not placed in Chrome Sync or sent to the
   developer.
-- On Pixiv pages, P2 processes the current artwork identifier and requests
+- On `www.pixiv.net` pages, P2 processes the current artwork identifier and requests
   artwork metadata and image resources only after the user hovers an artwork
   long enough to open a preview. These requests go to Pixiv. The browser may
   include the user's existing Pixiv session, but P2 does not read or store the
@@ -27,7 +27,7 @@ service as described below. P2 does not collect analytics or telemetry.
   Nazurin service. P2 does not send Pixiv cookies, Pixiv login credentials, or
   image data to Nazurin. The Bot Token is used only to construct the endpoint
   required by the user's Nazurin service.
-- On Twitter/X pages, P2 reads the hovered tweet's permalink from the page,
+- On Twitter/X main-site pages, P2 reads the hovered tweet's permalink from the page,
   or the current photo viewer's tweet URL from the address bar, only when
   the user presses the submission shortcut, and sends its canonical
   Twitter URL to the configured Nazurin service. It does not request tweet
@@ -38,22 +38,41 @@ service as described below. P2 does not collect analytics or telemetry.
   canonical Pixiv artwork URL to the configured Nazurin service. P2 does not
   request artwork metadata or images, display previews, or send cookies or
   image data on these pages. Pending links are held only in memory.
+- On other allowlisted Nazurin sites, pressing the submission shortcut selects
+  a supported anchor link under the pointer, or falls back to the current page
+  URL when no supported link is hovered. The selected URL, including its query
+  string and fragment, is sent only to the configured Nazurin service.
+  Konachan .net URLs are converted to .com by default; this setting can be
+  disabled. P2 does not fetch metadata or images, read cookies, or display
+  previews on these pages. Pending URLs are held only in memory; leaving a
+  page clears work that has not been sent.
 
 P2 does not inspect, retain, or transmit the user's general browsing history.
-It processes only Pixiv artwork information (including links selected on
-pixivision) and selected Twitter/X tweet links
-needed for the preview and user-initiated Nazurin features.
+It processes only the artwork information and explicitly selected links or
+current-page URLs needed for the preview and user-initiated Nazurin features.
 
 ## Permissions
 
-P2 runs on `https://www.pixiv.net/*`, `https://x.com/*`,
-`https://twitter.com/*`, `https://pixivision.net/*`, and their `www` variants.
-It uses the `storage` permission for
-the settings described above. A Nazurin server origin is requested as an
+P2 runs on HTTPS pages on Pixiv, Twitter/X, pixivision, yande.re, Konachan
+(.com and .net), Lolibooru, Danbooru, Safebooru (`safebooru.donmai.us`),
+Zerochan, Gelbooru, ArtStation, Wallhaven (including whvn.cc), Bilibili dynamics,
+Weibo, DeviantArt, Lofter, Kemono (.party, .su, .cr), Telegraph (telegra.ph,
+graph.org), and Bluesky (bsky.app). The exact host list and supported aliases
+are declared in `manifest.json` and documented in the README. User subdomains
+are included for ArtStation, DeviantArt, and Lofter; unrelated subdomains of
+other platforms are not granted access. Image/CDN hosts may be submission
+targets but do not receive content scripts.
+
+P2 uses the `storage` permission for the settings described above.
+A Nazurin server origin is requested as an
 optional host permission only when the user saves that host. Remote Nazurin
 services must use HTTPS; HTTP is accepted only for a service on `localhost` or
 `127.0.0.1`. Clearing the Nazurin configuration also removes the corresponding
 optional host permission.
+
+The fixed permissions for the supported sites remain installed. Updates adding
+sites may require renewed approval in Chrome; P2 does not inject scripts on
+arbitrary websites.
 
 P2 does not request access to browser tabs, cookies, downloads, notifications,
 or browsing history, and it does not download or execute remotely hosted code.
@@ -61,10 +80,10 @@ or browsing history, and it does not download or execute remotely hosted code.
 ## Sharing and retention
 
 - Pixiv receives the metadata and image requests needed to display previews.
-- Chrome may synchronize general preview preferences through the user's signed-in
+- Chrome may synchronize general preferences through the user's signed-in
   browser profile.
-- A user-configured Nazurin service receives an artwork or tweet URL only after an
-  explicit submission action. Nazurin may then download or retain the artwork
+- A user-configured Nazurin service receives the selected link or current-page
+  URL only after an explicit submission action. Nazurin may then download or retain the artwork
   according to the user's own service configuration. Its processing and
   retention are controlled by the user and governed by that service.
 - The developer of P2 does not receive this data and does not sell, license, or

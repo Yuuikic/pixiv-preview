@@ -85,12 +85,13 @@ P2是一个用于预览 Pixiv 作品的 Chrome 扩展，特别支持使用 [Nazu
 | 自动排列留驻窗 | 默认关闭；开启后，留驻时自动缩放窗口并排列到作品缩略图两侧的空白区域 |
 | 快捷键 | 按留驻、复制详情页链接、提交到 Nazurin 的顺序排列，默认分别为 `S`、`C`、`D`；可改为其他字母或数字，按键不能重复 |
 | 提交到 Nazurin 成功后自动隐藏浮窗 | 默认关闭；开启后，对应作品链接被 Nazurin 接受时关闭该作品浮窗，快捷键和图标按钮提交均适用 |
+| 提交时将 Konachan .net 转为 .com | 默认开启；只转换发给 Nazurin 的链接，不跳转页面；关闭后不会发送 .net 链接 |
 
 一般设置自动保存并立即生效。
 
 ## 可选：连接 Nazurin
 
-如果你已有自己的 **[Nazurin](https://github.com/y-young/nazurin) 服务**，可以从 P2 提交整个 Pixiv 作品。没有 Nazurin 也不影响预览、翻页和留驻功能。
+如果你已有自己的 **[Nazurin](https://github.com/y-young/nazurin) 服务**，可以从 P2 提交整个 Pixiv 作品或其他受支持站点的链接。没有 Nazurin 也不影响预览、翻页和留驻功能。
 
 1. 打开 P2 设置，展开 **Nazurin**。
 2. 填写服务的 **API Host** 和 **Bot Token**（Telegram Bot Token）。远程服务必须使用 HTTPS；仅本机的 `localhost` 或 `127.0.0.1` 服务可以使用 HTTP。
@@ -127,6 +128,33 @@ Nazurin Host 和 Bot Token 只保存在当前设备。点击或按键提交时�
 
 链接统一为 `https://twitter.com/用户名/status/推文ID`，会去掉追踪参数和图片编号。Nazurin 是否能下载内容取决于服务端的 Twitter 配置。更新扩展后，请在 `chrome://extensions/` 重新加载，并刷新已打开的 Twitter/X 页面。
 
+### 其他 Nazurin 站点的 D 快捷提交
+
+以下 HTTPS 页面使用通用链接提交。来源页面与提交链接都必须属于固定白名单；不是所有 Moebooru 网站都能直接使用。
+
+| 站点 | 页面域名 |
+| --- | --- |
+| yande.re / Konachan / Lolibooru | `yande.re`、`konachan.com`、`konachan.net`、`lolibooru.moe`，及各自的 `www` 别名 |
+| Danbooru / Safebooru | `danbooru.donmai.us`、`safebooru.donmai.us`，不含 `safebooru.org` |
+| Zerochan / Gelbooru | `zerochan.net`、`gelbooru.com`，及各自的 `www` 别名 |
+| ArtStation / DeviantArt / Lofter | `artstation.com`、`deviantart.com`、`lofter.com`，及单层用户子域名 |
+| Wallhaven | `wallhaven.cc`、`www.wallhaven.cc`、`whvn.cc` |
+| Bilibili 动态 | `bilibili.com`、`www.bilibili.com`、`t.bilibili.com` |
+| Weibo | `weibo.com`、`weibo.cn`，及各自的 `www`、`m` 别名；`share.api.weibo.cn` |
+| Kemono | `kemono.party`、`kemono.su`、`kemono.cr` |
+| Telegraph / Bluesky | `telegra.ph`、`graph.org`、`bsky.app` |
+| Pixiv / X 的补充入口 | `pixiv.net`、`mobile.x.com`、`mobile.twitter.com` |
+
+保存 Nazurin 配置并通过连接测试后，按 `D`（或自定义提交键）：优先提交鼠标下的受支持 `<a href>` 链接，包括链接内的图片；没有链接或链接不受支持时，提交当前页面地址。不识别卡片空白区域、图片 `src`、JavaScript 点击事件或隐藏数据，不提供图片预览，也不额外请求作品元数据。已明确支持的图片/CDN 地址可以作为提交目标，但不会在独立 CDN 页面上启用快捷键。
+
+URL 的路径、查询参数和 hash 会保留，并发送到你配置的 Nazurin 服务。HTTP/HTTPS 目标仅接受标准端口，不接受内嵌用户名或密码。通用模式不判断作品路径，首页、列表页也可能被提交；能否收藏取决于 Nazurin 服务端版本、站点配置及该 URL 是否可解析，最终结果以 Telegram 为准。
+
+Konachan `.net → .com` 转换默认开启，只转换提交目标，不修改浏览器地址。关闭时，选中的 `.net` 链接会显示提示，不发送，也不会改为提交当前页；仍可从 `.net` 页面提交 `.com` 链接。转换开关可在弹窗或完整设置中修改，恢复默认会重新开启，不会清除 Host/Token。
+
+通用模式未配置或未通过连接测试时不抢占站点快捷键。输入、输入法组合、组合键和长按不会触发；不支持 `Shift+D`。连续提交串行排队，同一待提交链接（包括等价的 Konachan .net/.com 链接）不重复加入；单项失败可再次按键重试。页面离开会清空尚未发送的队列。现有 `www.pixiv.net`、X 主站和 pixivision 的专用行为不变，没有增加当前页兜底。
+
+更新后需要重新加载扩展并刷新已打开的相关页面。浏览器可能要求重新确认新增站点的访问权限；这些权限只用于上述用户主动触发的功能，不包含全站脚本权限或浏览历史读取。
+
 ## 常见问题
 
 1. **为什么动图不会播放？**
@@ -151,7 +179,7 @@ Nazurin Host 和 Bot Token 只保存在当前设备。点击或按键提交时�
 
 ## 隐私与许可
 
-P2 在 Pixiv、pixivision 和 Twitter/X 页面运行，不收集分析数据，也不会把用户数据发送给开发者。扩展会在本机处理当前 Pixiv 作品信息、用户选择的作品或推文链接和设置；一般预览设置可通过 Chrome 同步，Nazurin 地址和 Token 仅保存在本地。提交只发送所选链接，不发送 Cookie 或图片数据。只有配置 Nazurin 时才会请求对应服务的访问权限，清除配置也会移除该权限。
+P2 在 Pixiv、pixivision、Twitter/X 及上述白名单站点页面运行，不收集分析数据，也不会把用户数据发送给开发者。扩展会在本机处理当前 Pixiv 作品信息、用户主动选择的链接或当前页面地址和设置；一般设置（含 Konachan 转换开关）可通过 Chrome 同步，Nazurin 地址和 Token 仅保存在本地。提交只发送所选链接，不发送 Cookie 或图片数据。只有配置 Nazurin 时才会请求对应服务的可选访问权限，清除配置也会移除该可选权限，不移除扩展固定的站点权限。
 
 [隐私政策](PRIVACY.md) · [MIT 许可证](LICENSE) · [第三方资源声明](THIRD_PARTY_NOTICES.md)
 

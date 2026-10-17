@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
@@ -15,7 +16,12 @@ test("manifest keeps Nazurin access optional and avoids expansive API permission
   assert.equal(manifest.default_locale, "en");
   assert.equal(manifest.options_page, "options/options.html");
   assert.deepEqual(manifest.permissions, ["storage"]);
-  assert.deepEqual(manifest.host_permissions, ["https://www.pixiv.net/*", "https://x.com/*", "https://www.x.com/*", "https://twitter.com/*", "https://www.twitter.com/*", "https://www.pixivision.net/*", "https://pixivision.net/*"]);
+  const context = vm.createContext({ URL });
+  vm.runInContext(read("src/nazurin-sites.js"), context);
+  assert.deepEqual([...manifest.host_permissions].sort(), [
+    ...context.P2NazurinSites.LEGACY_SOURCE_HOSTS.map((host) => `https://${host}/*`),
+    ...context.P2NazurinSites.SOURCE_MATCHES
+  ].sort());
   assert.deepEqual(manifest.optional_host_permissions, [
     "https://*/*", "http://localhost/*", "http://127.0.0.1/*"
   ]);

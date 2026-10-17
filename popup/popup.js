@@ -17,6 +17,7 @@
   const stickyShortcut = byId("sticky-shortcut");
   const nazurinShortcut = byId("nazurin-shortcut");
   const nazurinAutoHide = byId("nazurin-auto-hide");
+  const konachanNetToCom = byId("konachan-net-to-com");
   const copyShortcut = byId("copy-shortcut");
   const reset = byId("reset-button");
   const saveStatus = byId("save-status");
@@ -36,6 +37,7 @@
   let stickyCode = settings.DEFAULT_STICKY_SHORTCUT_CODE;
   let nazurinCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
   let copyCode = settings.DEFAULT_COPY_SHORTCUT_CODE;
+  let konachanPreferenceRevision = 0;
 
   i18n.localizeDocument();
   document.title = t("settingsTitle");
@@ -91,7 +93,12 @@
     });
   }
   updateNazurinDependencies("", "");
-  globalThis.chrome?.storage?.onChanged?.addListener(async (_changes, area) => {
+  globalThis.chrome?.storage?.onChanged?.addListener(async (changes, area) => {
+    if (area === "sync" && changes[settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]) {
+      konachanPreferenceRevision += 1;
+      konachanNetToCom.checked = settings.normalizeKonachanNetToCom(
+        changes[settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY].newValue);
+    }
     if (area !== "local" || !local) return;
     try {
       const stored = await local.get([settings.NAZURIN_API_HOST_STORAGE_KEY, settings.NAZURIN_API_TOKEN_STORAGE_KEY]);
@@ -193,6 +200,11 @@
 
   nazurinAutoHide.addEventListener("change", () => {
     if (!nazurinAutoHide.disabled) saveSync({ [settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]: nazurinAutoHide.checked });
+  });
+  konachanNetToCom.addEventListener("change", () => {
+    if (konachanNetToCom.disabled) return;
+    konachanPreferenceRevision += 1;
+    saveSync({ [settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]: konachanNetToCom.checked });
   });
 
   function updateHttpWarning() {
@@ -305,6 +317,8 @@
     original.checked = settings.DEFAULT_ORIGINAL_UPGRADE_ENABLED;
     autoArrange.checked = settings.DEFAULT_AUTO_ARRANGE_ENABLED;
     nazurinAutoHide.checked = settings.DEFAULT_NAZURIN_AUTO_HIDE;
+    konachanPreferenceRevision += 1;
+    konachanNetToCom.checked = settings.DEFAULT_NAZURIN_KONACHAN_NET_TO_COM;
     updateShortcutUi();
     if (!sync) return showStatus("cannotSave");
     try {
@@ -316,6 +330,7 @@
         [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
         [settings.STICKY_SHORTCUT_STORAGE_KEY]: stickyCode,
         [settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]: settings.DEFAULT_NAZURIN_AUTO_HIDE,
+        [settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]: settings.DEFAULT_NAZURIN_KONACHAN_NET_TO_COM,
         [settings.COPY_SHORTCUT_STORAGE_KEY]: copyCode,
         [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: nazurinCode
       });
@@ -324,6 +339,7 @@
   });
 
   (async () => {
+    const initialKonachanRevision = konachanPreferenceRevision;
     try {
       const stored = sync ? await sync.get({
         [settings.STORAGE_KEY]: settings.DEFAULT_HOVER_DELAY_MS,
@@ -333,6 +349,7 @@
         [settings.AUTO_ARRANGE_STORAGE_KEY]: settings.DEFAULT_AUTO_ARRANGE_ENABLED,
         [settings.STICKY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_STICKY_SHORTCUT_CODE,
         [settings.NAZURIN_AUTO_HIDE_STORAGE_KEY]: settings.DEFAULT_NAZURIN_AUTO_HIDE,
+        [settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]: settings.DEFAULT_NAZURIN_KONACHAN_NET_TO_COM,
         [settings.COPY_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_COPY_SHORTCUT_CODE,
         [settings.NAZURIN_SHORTCUT_STORAGE_KEY]: settings.DEFAULT_NAZURIN_SHORTCUT_CODE
       }) : {};
@@ -341,6 +358,10 @@
       occluded.checked = settings.normalizeOccludedSwitch(stored[settings.OCCLUDED_SWITCH_STORAGE_KEY]);
       original.checked = settings.normalizeOriginalUpgrade(stored[settings.ORIGINAL_UPGRADE_STORAGE_KEY]);
       nazurinAutoHide.checked = stored[settings.NAZURIN_AUTO_HIDE_STORAGE_KEY] === true;
+      if (initialKonachanRevision === konachanPreferenceRevision) {
+        konachanNetToCom.checked = settings.normalizeKonachanNetToCom(
+          stored[settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]);
+      }
       autoArrange.checked = settings.normalizeAutoArrange(stored[settings.AUTO_ARRANGE_STORAGE_KEY]);
       stickyCode = settings.normalizeShortcutCode(stored[settings.STICKY_SHORTCUT_STORAGE_KEY], settings.DEFAULT_STICKY_SHORTCUT_CODE);
       nazurinCode = settings.normalizeShortcutCode(stored[settings.NAZURIN_SHORTCUT_STORAGE_KEY], settings.DEFAULT_NAZURIN_SHORTCUT_CODE);

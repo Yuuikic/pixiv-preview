@@ -3,15 +3,32 @@
 
   const settings = globalThis.PixivPreviewSettings;
   const { t } = globalThis.P2I18n;
-  globalThis.P2LinkSubmit = ({ resolveTarget, createMessage, duplicateKey }) => {
+  globalThis.P2LinkSubmit = ({
+    resolveTarget, createMessage, duplicateKey, getTargetKey = (target) => target,
+    requireTrustedEvents = false
+  }) => {
     let shortcutCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
     let pointer = null;
     let active = true;
     let processing = false;
+    let revision = 0;
+    let runtimeValid = true;
     let toast = null;
     let toastTimer = 0;
     const queue = [];
     const pending = new Set();
+
+    function deactivate() {
+      active = false;
+      revision += 1;
+      processing = false;
+      pointer = null;
+      queue.length = 0;
+      pending.clear();
+      clearTimeout(toastTimer);
+      toast?.remove();
+      toast = null;
+    }
 
     function showToast(message, tone = "neutral") {
       clearTimeout(toastTimer);
@@ -30,9 +47,6 @@
       try {
         return await chrome.runtime.sendMessage(message);
       } catch {
-        // Updating/unloading the extension invalidates this tab's runtime.
-        active = false;
-        queue.length = 0;
         return { ok: false, status: "background-unavailable" };
       }
     }
@@ -43,21 +57,33 @@
         "permission-missing": "nazurinPermissionMissing", timeout: "nazurinTimeout",
         "network-error": "nazurinNetworkError", "http-error": "nazurinHttpError",
         "api-error": "apiError", "invalid-response": "nazurinInvalidResponse",
-        "background-unavailable": "backgroundUnavailable"
+        "background-unavailable": "backgroundUnavailable",
+        "unsupported-url": "nazurinUnsupportedUrl",
+        "konachan-conversion-disabled": "konachanConversionDisabled"
       };
       return response?.message || t(keys[response?.status] || "nazurinSubmitFailed");
     }
 
     async function processQueue() {
+      const currentRevision = revision;
       processing = true;
-      while (active && queue.length) {
-        const target = queue.shift();
+      while (active && currentRevision === revision && queue.length) {
+        const { target, key } = queue.shift();
         showToast(t("nazurinSending"));
         const response = await send({
           ...createMessage(target),
           requestId: `link-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
         });
-        pending.delete(target);
+        // An old page/BFCache generation must not mutate a restored page's queue.
+        if (!active || currentRevision !== revision) break;
+        if (response?.status === "background-unavailable") {
+          // Updating/unloading the extension invalidates this tab's runtime.
+          runtimeValid = false;
+          deactivate();
+          showToast(t("backgroundUnavailable"), "error");
+          return;
+        }
+        pending.delete(key);
         showToast(response?.ok ? t("submissionSuccess") : failureMessage(response),
           response?.ok ? "success" : "error");
         if (["not-configured", "not-verified", "permission-missing", "background-unavailable"].includes(response?.status)) {
@@ -68,42 +94,43 @@
         // Keep rapid submissions serialized and give the service time between requests.
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      processing = false;
+      if (currentRevision === revision) processing = false;
     }
 
     document.addEventListener("pointermove", (event) => {
+      if (requireTrustedEvents && !event.isTrusted) return;
       pointer = { x: event.clientX, y: event.clientY };
     }, { capture: true, passive: true });
     document.addEventListener("pointerover", (event) => {
+      if (requireTrustedEvents && !event.isTrusted) return;
       pointer = { x: event.clientX, y: event.clientY };
     }, { capture: true, passive: true });
     document.addEventListener("pointerout", (event) => {
+      if (requireTrustedEvents && !event.isTrusted) return;
       if (!event.relatedTarget) pointer = null;
     }, true);
     window.addEventListener("blur", () => { pointer = null; });
-    window.addEventListener("pagehide", () => {
-      active = false;
-      pointer = null;
-      queue.length = 0;
-      pending.clear();
-    });
-    window.addEventListener("pageshow", () => { active = true; });
+    window.addEventListener("pagehide", deactivate);
+    window.addEventListener("pageshow", () => { active = runtimeValid; });
 
     document.addEventListener("keydown", (event) => {
+      if (requireTrustedEvents && !event.isTrusted) return;
       if (!active || event.defaultPrevented || event.code !== shortcutCode || event.repeat ||
           event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.isComposing) return;
       if ([event.target, document.activeElement].some((element) =>
         element?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]'))) return;
       const target = resolveTarget(pointer);
       if (!target) return;
+      const key = getTargetKey(target);
+      if (!key) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (pending.has(target)) {
+      if (pending.has(key)) {
         showToast(t(duplicateKey));
         return;
       }
-      pending.add(target);
-      queue.push(target);
+      pending.add(key);
+      queue.push({ target, key });
       showToast(t("nazurinQueued"));
       if (!processing) void processQueue();
     }, true);

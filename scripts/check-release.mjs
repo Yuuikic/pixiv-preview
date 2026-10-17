@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { runInNewContext } from "node:vm";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8"));
@@ -32,10 +33,27 @@ const requiredFiles = [
   "assets/icon-16.png", "assets/icon-32.png", "assets/icon-48.png", "assets/icon-128.png",
   "assets/nazurin-48.png", "options/options.html", "popup/popup.html", "popup/popup.css",
   "popup/popup.js", "src/background.js", "src/content.js", "src/i18n.js",
-  "src/preview.css", "src/settings.js", "src/twitter.js", "src/pixivision.js", "src/link-submit.js", "src/link-submit.css"
+  "src/preview.css", "src/settings.js", "src/twitter.js", "src/pixivision.js", "src/link-submit.js", "src/link-submit.css",
+  "src/nazurin-sites.js", "src/generic-submit.js"
 ];
 for (const file of requiredFiles) {
   if (!existsSync(join(root, file))) fail(`missing ${file}`);
+}
+
+if (existsSync(join(root, "src/nazurin-sites.js"))) {
+  const context = { URL };
+  runInNewContext(readFileSync(join(root, "src/nazurin-sites.js"), "utf8"), context);
+  const sites = context.P2NazurinSites;
+  const generic = manifest.content_scripts.filter((entry) => entry.js.includes("src/generic-submit.js"));
+  if (generic.length !== 1 || JSON.stringify(generic[0].matches) !== JSON.stringify(sites.SOURCE_MATCHES)) {
+    fail("generic content-script matches do not match the audited site registry");
+  }
+  const expectedHosts = [
+    ...sites.LEGACY_SOURCE_HOSTS.map((host) => `https://${host}/*`), ...sites.SOURCE_MATCHES
+  ].sort();
+  if (JSON.stringify([...manifest.host_permissions].sort()) !== JSON.stringify(expectedHosts)) {
+    fail("required host permissions do not match the audited site registry");
+  }
 }
 
 function filesUnder(directory) {
@@ -54,7 +72,7 @@ for (const file of filesUnder(root)) {
   if (statSync(file).size > 5 * 1024 * 1024) fail(`${path} exceeds 5 MiB`);
 }
 
-for (const file of ["src/background.js", "src/content.js", "src/twitter.js", "src/pixivision.js", "src/link-submit.js", "src/i18n.js", "src/settings.js", "popup/popup.js"]) {
+for (const file of ["src/background.js", "src/content.js", "src/twitter.js", "src/pixivision.js", "src/link-submit.js", "src/i18n.js", "src/settings.js", "src/nazurin-sites.js", "src/generic-submit.js", "popup/popup.js"]) {
   const result = spawnSync(process.execPath, ["--check", join(root, file)], { encoding: "utf8" });
   if (result.status !== 0) fail(`${file} has invalid JavaScript\n${result.stderr.trim()}`);
 }
