@@ -21,9 +21,6 @@
     "https://www.twitter.com/*",
     "https://www.pixivision.net/*",
     "https://pixivision.net/*",
-    "https://pixiv.net/*",
-    "https://mobile.x.com/*",
-    "https://mobile.twitter.com/*",
     "https://yande.re/*",
     "https://www.yande.re/*",
     "https://konachan.com/*",
@@ -129,9 +126,6 @@
     },
     {
       "matches": [
-        "https://pixiv.net/*",
-        "https://mobile.x.com/*",
-        "https://mobile.twitter.com/*",
         "https://yande.re/*",
         "https://www.yande.re/*",
         "https://konachan.com/*",

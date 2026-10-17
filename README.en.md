@@ -85,7 +85,6 @@ Click P2 in the Chrome toolbar to open settings. The button in the upper-right c
 | Auto-arrange pinned windows | Off by default. When enabled, automatically resizes and places windows in the empty space on either side of artwork thumbnails when pinned |
 | Keyboard shortcuts | Listed as pin, copy artwork link, and submit to Nazurin; defaults are `S`, `C`, and `D`. Use distinct letters or numbers to customize them |
 | Hide preview after successful Nazurin submission | Off by default; close the matching preview once Nazurin accepts its artwork link, whether submitted by shortcut or icon button |
-| Convert Konachan .net to .com on submission | On by default; converts only the URL sent to Nazurin, without navigating. When off, .net links are not sent |
 
 General settings save automatically and take effect immediately.
 
@@ -143,15 +142,21 @@ The following HTTPS pages use generic link submission. Both the source page and 
 | Weibo | `weibo.com`, `weibo.cn`, their `www` and `m` aliases, and `share.api.weibo.cn` |
 | Kemono | `kemono.party`, `kemono.su`, `kemono.cr` |
 | Telegraph / Bluesky | `telegra.ph`, `graph.org`, `bsky.app` |
-| Additional Pixiv / X entry points | `pixiv.net`, `mobile.x.com`, `mobile.twitter.com` |
 
-After saving and testing your Nazurin configuration, press `D` (or your custom submission key) to submit the supported `<a href>` link under the pointer, including images inside links. If there is no supported link, submit the current page URL. Empty card areas, image `src` values, JavaScript click handlers, and hidden data are not interpreted. There are no previews or additional metadata requests. Audited image/CDN URLs can be submitted as targets, but standalone CDN pages do not receive the shortcut.
+After saving and testing your Nazurin configuration, press `D` (or your custom submission key):
 
-Paths, query strings, and fragments are preserved and sent to your configured Nazurin service. HTTP/HTTPS targets require standard ports and cannot contain embedded usernames or passwords. Generic mode checks the site, not the artwork path: a homepage or listing may be submitted but may not be collectable. Collection depends on your Nazurin version, site configuration, and URL parser; check Telegram for the final result.
+- **A recognized artwork detail page submits the current work first.** No particular hover target is required. Hovering the main image, empty space, or another recommended artwork link still submits the work currently being viewed.
+- **A listing selects the hovered artwork.** When the current page is not an artwork detail page, only a supported `<a href>` artwork link under the pointer is submitted, including its thumbnail. Without a valid work link, nothing is submitted and the key is not intercepted. Homepages, search results, and listings are never fallback targets.
 
-Konachan `.net -> .com` conversion is on by default and changes only the submitted URL, not your browser location. When off, selecting a `.net` target shows an error without sending it or falling back to the current page. You can still submit `.com` links from a `.net` page. Both settings surfaces offer the switch; resetting defaults enables it again without clearing Host/Token.
+For example, hovering a thumbnail on `https://yande.re/post` and pressing `D` submits that work's link. On `https://yande.re/post/show/1270390`, pressing `D` over the unlinked `<img id="image">` submits work `1270390`. This follows the same current-work priority as X's photo viewer.
 
-Generic mode does not intercept shortcuts before Nazurin is configured and verified. Typing, composition, modifiers, and held keys do not trigger submission; `Shift+D` is not supported. Rapid submissions are serialized, with pending duplicates suppressed, including equivalent Konachan .net/.com URLs. Retry a failed item by pressing the key again. Leaving the page clears unsent work. The specialized behavior on `www.pixiv.net`, the X main sites, and pixivision is unchanged, without a new current-page fallback.
+Targets follow the artwork paths and required query parameters in Nazurin source snapshot `888af1e`, then normalize to stable HTTPS artwork links. Unrelated query parameters and fragments are removed; required parameters such as Gelbooru's `page`, `s`, and `id` are retained. Audited image/CDN anchor links are accepted: when a work ID is available, P2 submits its artwork page; hash-only Danbooru image links retain the server-supported image path. Standalone CDN pages do not receive the shortcut.
+
+Konachan `.net -> .com` conversion is always enabled, with no user setting. It changes only the submitted link, without navigating or modifying page links. Any previously saved conversion preference is ignored. Equivalent .net, .com, www, and tagged links deduplicate as the same pending work.
+
+P2 does not inspect image `src` values, JavaScript click handlers, or hidden data, and does not fetch previews or metadata. Listing cards with JavaScript-only navigation and no anchor may not be selectable. A supported URL shape does not guarantee that a work exists or that collection succeeds; check Nazurin/Telegram for the final result.
+
+Generic mode does not intercept shortcuts before Nazurin is configured and verified. Typing, composition, modifiers, and held keys do not trigger submission; `Shift+D` is not supported. Rapid submissions are serialized and duplicate pending/in-flight works are suppressed. Retry a failed item by pressing the key again. Leaving the page clears unsent work. The dedicated adapters on `www.pixiv.net`, the X main sites, and pixivision retain their existing rules. Generic scripts are not added to `pixiv.net`, `mobile.x.com`, or `mobile.twitter.com`; valid artwork links on these domains remain supported submission targets.
 
 Reload the extension and refresh open supported pages after updating. Chrome may ask you to approve access to the additional sites. These permissions support the user-triggered features above; they do not grant all-site content scripts or browsing-history access.
 
@@ -179,7 +184,7 @@ Reload the extension and refresh open supported pages after updating. Chrome may
 
 ## Privacy and license
 
-P2 runs on Pixiv, pixivision, Twitter/X, and the allowlisted sites above, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, explicitly selected links or current-page URLs, and settings on the device. Submissions send only the selected link, never cookies or image data. General settings, including Konachan conversion, may sync through Chrome; the Nazurin address and Token stay in local storage. Optional access to a Nazurin service is requested only when you configure it; clearing the configuration removes that optional permission, not the extension's fixed site permissions.
+P2 runs on Pixiv, pixivision, Twitter/X, and the allowlisted sites above, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, selected or currently viewed artwork links, and settings on the device. Submissions send only the selected link, never cookies or image data. General settings may sync through Chrome; the Nazurin address and Token stay in local storage. Optional access to a Nazurin service is requested only when you configure it; clearing the configuration removes that optional permission, not the extension's fixed site permissions.
 
 [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 

@@ -93,7 +93,6 @@ function createHarness({
 
   return {
     dispatch, fetchCalls, fetchErrors,
-    setConversion(value) { konachanNetToCom = value; },
     install(reason) { installedListener({ reason }); },
     get optionsPageOpenCount() { return optionsPageOpenCount; }
   };
@@ -383,33 +382,33 @@ test("normalizes HTTP, API, and malformed response failures", async (t) => {
   });
 });
 
-test("generic submissions forward supported HTTP(S) URLs without dropping query or fragment", async () => {
+test("background independently validates and canonicalizes generic work targets", async () => {
   const cases = [
-    ["https://yande.re/post", "https://yande.re/post/show/42?tags=a%20b#image"],
+    ["https://yande.re/post", "https://yande.re/post/show/42?tags=a%20b#image", "https://yande.re/post/show/42"],
     ["https://danbooru.donmai.us/", "https://safebooru.donmai.us/posts/42"],
     ["https://konachan.net/post", "https://konachan.com/post/show/42"],
     ["https://lolibooru.moe/", "https://lolibooru.moe/post/show/42"],
-    ["https://www.zerochan.net/", "https://static.zerochan.net/A.full.42.jpg"],
-    ["https://gelbooru.com/", "https://gelbooru.com/index.php?page=post&s=view&id=42#image"],
+    ["https://www.zerochan.net/", "https://static.zerochan.net/A.full.42.jpg", "https://www.zerochan.net/42"],
+    ["https://gelbooru.com/", "https://gelbooru.com/index.php?id=42&s=view&page=post#image", "https://gelbooru.com/index.php?page=post&s=view&id=42"],
     ["https://catzz.artstation.com/", "https://www.artstation.com/artwork/abc"],
-    ["https://wallhaven.cc/", "http://whvn.cc/abc123"],
-    ["https://t.bilibili.com/", "https://www.bilibili.com/opus/42"],
-    ["https://m.weibo.cn/", "https://weibo.cn/appurl?scheme=x&lfid=42"],
+    ["https://wallhaven.cc/", "http://whvn.cc/abc123", "https://wallhaven.cc/w/abc123"],
+    ["https://t.bilibili.com/", "https://www.bilibili.com/opus/42", "https://t.bilibili.com/42"],
+    ["https://m.weibo.cn/", "https://weibo.cn/appurl?scheme=x&lfid=42", "https://m.weibo.cn/detail/42"],
     ["https://artist.deviantart.com/", "https://www.deviantart.com/artist/art/title-42"],
     ["https://artist.lofter.com/", "https://artist.lofter.com/post/abc_def"],
     ["https://kemono.cr/", "https://kemono.su/fanbox/user/1/post/2/revision/3"],
     ["https://telegra.ph/", "https://graph.org/Page-01-01"],
     ["https://bsky.app/", "https://bsky.app/profile/artist.bsky.social/post/abc"],
-    ["https://pixiv.net/", "https://www.pixiv.net/artworks/42?x=1#image"],
-    ["https://mobile.twitter.com/", "https://x.com/artist/status/42?x=1#image"]
+    ["https://yande.re/post", "https://pixiv.net/artworks/42?x=1#image", "https://www.pixiv.net/artworks/42"],
+    ["https://yande.re/post", "https://mobile.twitter.com/artist/status/42?x=1#image", "https://twitter.com/artist/status/42"]
   ];
-  for (const [source, url] of cases) {
+  for (const [source, url, expected = url] of cases) {
     const h = createHarness();
     assert.deepEqual(await h.dispatch({
       type: "pfp-nazurin-link-submit", url, requestId: "generic-valid"
     }, source), { ok: true, status: "accepted" }, source);
     assert.equal(h.fetchCalls.length, 1);
-    assert.deepEqual(JSON.parse(h.fetchCalls[0][1].body), { url });
+    assert.deepEqual(JSON.parse(h.fetchCalls[0][1].body), { url: expected });
     assert.deepEqual(await h.dispatch({ type: "pfp-nazurin-status" }, source), {
       configured: true, verified: true
     });
@@ -422,7 +421,8 @@ test("generic sources cannot access legacy routes or impersonate extension pages
   for (const source of [
     "https://evil.example/", "http://yande.re/", "https://yande.re.evil.example/",
     "https://www.pixiv.net/", "https://x.com/", "https://www.pixivision.net/",
-    "https://cdn.donmai.us/", "https://user:pass@yande.re/", "https://yande.re:444/"
+    "https://cdn.donmai.us/", "https://user:pass@yande.re/", "https://yande.re:444/",
+    "https://pixiv.net/artworks/42", "https://mobile.x.com/home", "https://mobile.twitter.com/home"
   ]) await assert.rejects(h.dispatch(submission, source), /not handled/, source);
   for (const sender of [{ id: "other-extension" }, { frameId: 1 }, { frameId: undefined }]) {
     await assert.rejects(h.dispatch(submission, "https://yande.re/", sender), /not handled/);
@@ -445,7 +445,8 @@ test("generic route rejects unsafe targets and malformed request IDs before fetc
     "https://evil.example/", "https://safebooru.org/", "https://yande.re.evil.example/",
     "https://space.bilibili.com/", "https://www.pixivision.net/zh/a/42", "/post/show/42",
     "javascript:alert(1)", "file:///tmp/test", "https://user:pass@yande.re/",
-    "https://yande.re:444/", null, {}
+    "https://yande.re:444/", "https://yande.re/post", "https://wallhaven.cc/latest",
+    "https://yande.re/post?url=https://www.pixiv.net/artworks/42", null, {}
   ]) {
     assert.deepEqual(await h.dispatch({
       type: "pfp-nazurin-link-submit", url, requestId: "generic-invalid"
@@ -472,29 +473,18 @@ test("generic route retains configuration, verification and API permission check
   }
 });
 
-test("background applies the latest Konachan preference and never posts raw .net when disabled", async () => {
-  const h = createHarness();
-  h.setConversion(undefined);
+test("Konachan conversion always applies, even when an obsolete saved preference is false", async () => {
+  const h = createHarness({ konachanNetToCom: false });
   const message = {
     type: "pfp-nazurin-link-submit", url: "https://www.konachan.net/post/show/42?tags=a%20b#image",
     requestId: "konachan-convert"
   };
   const source = "https://konachan.net/post";
+  const expected = "https://konachan.com/post/show/42";
   assert.deepEqual(await h.dispatch(message, source), { ok: true, status: "accepted" });
-  const expected = "https://konachan.com/post/show/42?tags=a%20b#image";
   assert.equal(JSON.parse(h.fetchCalls[0][1].body).url, expected);
-  h.setConversion(false);
-  assert.deepEqual(await h.dispatch(message, source), { ok: false, status: "konachan-conversion-disabled" });
-  assert.equal(h.fetchCalls.length, 1);
   assert.deepEqual(await h.dispatch({ ...message, url: expected }, source), { ok: true, status: "accepted" });
-  assert.equal(h.fetchCalls.length, 2);
-  h.setConversion(true);
-  assert.deepEqual(await h.dispatch(message, source), { ok: true, status: "accepted" });
-  assert.equal(JSON.parse(h.fetchCalls[2][1].body).url, expected);
-  const awaitingConfiguration = h.dispatch(message, source);
-  h.setConversion(false);
-  assert.deepEqual(await awaitingConfiguration, { ok: false, status: "konachan-conversion-disabled" });
-  assert.equal(h.fetchCalls.length, 3);
+  assert.equal(JSON.parse(h.fetchCalls[1][1].body).url, expected);
 });
 
 test("generic route uses the same API/timeout error responses as legacy submissions", async () => {

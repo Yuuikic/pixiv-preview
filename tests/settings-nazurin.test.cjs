@@ -65,12 +65,3 @@ test("keeps automatic pinned-window arrangement opt-in", () => {
     assert.equal(settings.normalizeAutoArrange(value), false);
   }
 });
-
-test("Konachan conversion defaults on and honors explicit false", () => {
-  assert.equal(settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY, "nazurinKonachanNetToCom");
-  assert.equal(settings.DEFAULT_NAZURIN_KONACHAN_NET_TO_COM, true);
-  assert.equal(settings.normalizeKonachanNetToCom(false), false);
-  for (const value of [true, undefined, null, 1, "false"]) {
-    assert.equal(settings.normalizeKonachanNetToCom(value), true);
-  }
-});

@@ -4,10 +4,7 @@
   const zh = {
     tweetAlreadyQueued: "该推文已在队列中",
     linkAlreadyQueued: "该链接已在队列中",
-    konachanNetToCom: "提交时将 Konachan .net 转为 .com",
-    konachanNetToComHint: "默认开启；只转换提交链接，不跳转页面",
-    konachanConversionDisabled: "请开启 Konachan .net 转换或使用 .com 链接",
-    nazurinUnsupportedUrl: "此链接不属于受支持的 Nazurin 站点",
+    nazurinUnsupportedUrl: "此链接不是受支持的 Nazurin 作品链接",
     nazurinAutoHide: "\u63d0\u4ea4\u5230 Nazurin \u6210\u529f\u540e\u81ea\u52a8\u9690\u85cf\u6d6e\u7a97",
     nazurinAutoHideHint: "\u4ec5\u5728\u5bf9\u5e94\u4f5c\u54c1\u94fe\u63a5\u63d0\u4ea4\u6210\u529f\u540e\u5173\u95ed\u6d6e\u7a97",
     configureNazurinFirst: "\u8bf7\u5148\u914d\u7f6eNazurin",
@@ -121,10 +118,7 @@
   const en = {
     tweetAlreadyQueued: "This tweet is already queued",
     linkAlreadyQueued: "This link is already queued",
-    konachanNetToCom: "Convert Konachan .net to .com on submission",
-    konachanNetToComHint: "Enabled by default; converts the submitted link without navigating",
-    konachanConversionDisabled: "Enable Konachan .net conversion or use a .com link",
-    nazurinUnsupportedUrl: "This URL is not on a supported Nazurin site",
+    nazurinUnsupportedUrl: "This is not a supported Nazurin artwork link",
     nazurinAutoHide: "Hide preview after successful Nazurin submission",
     nazurinAutoHideHint: "Close the matching preview only after its artwork link is accepted",
     configureNazurinFirst: "Configure Nazurin first",

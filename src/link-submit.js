@@ -58,8 +58,7 @@
         "network-error": "nazurinNetworkError", "http-error": "nazurinHttpError",
         "api-error": "apiError", "invalid-response": "nazurinInvalidResponse",
         "background-unavailable": "backgroundUnavailable",
-        "unsupported-url": "nazurinUnsupportedUrl",
-        "konachan-conversion-disabled": "konachanConversionDisabled"
+        "unsupported-url": "nazurinUnsupportedUrl"
       };
       return response?.message || t(keys[response?.status] || "nazurinSubmitFailed");
     }

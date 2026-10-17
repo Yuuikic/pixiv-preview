@@ -118,7 +118,6 @@ async function handleNazurinRequest({ illustId, tweetUrl, linkUrl, requestId, te
     sendResponse(await performNazurinRequest({
       artworkUrl,
       testOnly,
-      genericLink,
       signal: controller.signal
     }));
   } catch {
@@ -128,7 +127,7 @@ async function handleNazurinRequest({ illustId, tweetUrl, linkUrl, requestId, te
   }
 }
 
-async function performNazurinRequest({ artworkUrl, testOnly, genericLink = false, signal }) {
+async function performNazurinRequest({ artworkUrl, testOnly, signal }) {
   const stored = await chrome.storage.local.get([
     settings.NAZURIN_API_HOST_STORAGE_KEY,
     settings.NAZURIN_API_TOKEN_STORAGE_KEY,
@@ -145,15 +144,6 @@ async function performNazurinRequest({ artworkUrl, testOnly, genericLink = false
 
   if (!testOnly && stored[settings.NAZURIN_VERIFIED_STORAGE_KEY] !== true) {
     return nazurinFailure("not-verified");
-  }
-
-  if (genericLink) {
-    const preferences = await chrome.storage.sync.get({
-      [settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]: settings.DEFAULT_NAZURIN_KONACHAN_NET_TO_COM
-    });
-    artworkUrl = sites.normalizeTargetUrl(artworkUrl, settings.normalizeKonachanNetToCom(
-      preferences[settings.NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY]));
-    if (!artworkUrl) return nazurinFailure("konachan-conversion-disabled");
   }
 
   const timeoutController = new AbortController();

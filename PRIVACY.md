@@ -10,8 +10,8 @@ service as described below. P2 does not collect analytics or telemetry.
 
 ## Data processed by the extension
 
-- Preview preferences, keyboard shortcuts, and the Konachan URL-conversion switch
-  are stored with `chrome.storage.sync`, so Chrome may synchronize them through the user's
+- Preview preferences and keyboard shortcuts are stored with
+  `chrome.storage.sync`, so Chrome may synchronize them through the user's
   signed-in browser profile.
 - An optional Nazurin API host and Telegram Bot Token are stored only with
   `chrome.storage.local`. They are not placed in Chrome Sync or sent to the
@@ -38,18 +38,21 @@ service as described below. P2 does not collect analytics or telemetry.
   canonical Pixiv artwork URL to the configured Nazurin service. P2 does not
   request artwork metadata or images, display previews, or send cookies or
   image data on these pages. Pending links are held only in memory.
-- On other allowlisted Nazurin sites, pressing the submission shortcut selects
-  a supported anchor link under the pointer, or falls back to the current page
-  URL when no supported link is hovered. The selected URL, including its query
-  string and fragment, is sent only to the configured Nazurin service.
-  Konachan .net URLs are converted to .com by default; this setting can be
-  disabled. P2 does not fetch metadata or images, read cookies, or display
-  previews on these pages. Pending URLs are held only in memory; leaving a
-  page clears work that has not been sent.
+- On other allowlisted Nazurin sites, pressing the submission shortcut submits
+  the current artwork when its URL matches a supported detail-page format.
+  On other pages, it submits only a supported artwork anchor under the pointer;
+  there is no homepage or listing fallback. Work identifiers are used to build
+  stable HTTPS artwork links, without unrelated query parameters or fragments.
+  Required artwork query parameters and hash-only Danbooru image paths are
+  retained. Konachan .net work links always normalize to .com; there is no
+  conversion preference. The resulting link is sent only to the configured
+  Nazurin service. P2 does not fetch metadata or images, read image src values
+  or cookies, or display previews on these pages. Pending work links are held
+  only in memory; leaving a page clears work that has not been sent.
 
 P2 does not inspect, retain, or transmit the user's general browsing history.
-It processes only the artwork information and explicitly selected links or
-current-page URLs needed for the preview and user-initiated Nazurin features.
+It processes only the artwork information and selected or currently viewed
+artwork links needed for the preview and user-initiated Nazurin features.
 
 ## Permissions
 
@@ -82,8 +85,8 @@ or browsing history, and it does not download or execute remotely hosted code.
 - Pixiv receives the metadata and image requests needed to display previews.
 - Chrome may synchronize general preferences through the user's signed-in
   browser profile.
-- A user-configured Nazurin service receives the selected link or current-page
-  URL only after an explicit submission action. Nazurin may then download or retain the artwork
+- A user-configured Nazurin service receives the selected artwork link only
+  after an explicit submission action. Nazurin may then download or retain the artwork
   according to the user's own service configuration. Its processing and
   retention are controlled by the user and governed by that service.
 - The developer of P2 does not receive this data and does not sell, license, or

@@ -37,8 +37,12 @@
   globalThis.P2LinkSubmit({
     resolveTarget(pointer) {
       if (!ready || !sites.isGenericSourceUrl(location.href)) return null;
+      // Like X's photo viewer, a recognized detail page owns the shortcut.
+      // This also works over an unlinked main <img> or empty page space.
+      const current = sites.currentWorkUrl(location.href);
+      if (current) return current;
       const link = pointer && document.elementFromPoint(pointer.x, pointer.y)?.closest("a[href]");
-      return (link && sites.targetUrl(link.href)) || sites.targetUrl(location.href);
+      return (link && sites.targetUrl(link.href)) || null;
     },
     createMessage: (url) => ({ type: "pfp-nazurin-link-submit", url }),
     getTargetKey: (url) => sites.normalizeTargetUrl(url),

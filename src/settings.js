@@ -12,8 +12,6 @@
   const STICKY_SHORTCUT_STORAGE_KEY = "stickyShortcutCode";
   const NAZURIN_AUTO_HIDE_STORAGE_KEY = "nazurinAutoHide";
   const DEFAULT_NAZURIN_AUTO_HIDE = false;
-  const NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY = "nazurinKonachanNetToCom";
-  const DEFAULT_NAZURIN_KONACHAN_NET_TO_COM = true;
   const COPY_SHORTCUT_STORAGE_KEY = "copyShortcutCode";
   const NAZURIN_SHORTCUT_STORAGE_KEY = "nazurinShortcutCode";
   const DEFAULT_HOVER_DELAY_MS = 500;
@@ -51,10 +49,6 @@
   }
 
   function normalizeOccludedSwitch(value) {
-    return value !== false;
-  }
-
-  function normalizeKonachanNetToCom(value) {
     return value !== false;
   }
 
@@ -138,9 +132,6 @@
     COPY_SHORTCUT_STORAGE_KEY,
     NAZURIN_AUTO_HIDE_STORAGE_KEY,
     DEFAULT_NAZURIN_AUTO_HIDE,
-    NAZURIN_KONACHAN_NET_TO_COM_STORAGE_KEY,
-    DEFAULT_NAZURIN_KONACHAN_NET_TO_COM,
-    normalizeKonachanNetToCom,
     DEFAULT_HOVER_DELAY_MS,
     DEFAULT_HOVER_RESIDUE_MS,
     DEFAULT_OCCLUDED_SWITCH_ENABLED,
