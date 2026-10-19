@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  if (globalThis.P2SiteSession && !globalThis.P2SiteSession.claim("pixivision.js")) return;
 
   function artworkIdFromLink(link) {
     try {

@@ -179,9 +179,12 @@ test("reports failures and allows retry", async () => {
 });
 
 test("pixivision loads only link submission scripts and toast styles, with no previews", () => {
-  const manifest = JSON.parse(read("manifest.json"));
-  const entry = manifest.content_scripts.find((entry) => entry.matches.includes("https://www.pixivision.net/*"));
-  assert.deepEqual(entry.matches, ["https://www.pixivision.net/*", "https://pixivision.net/*"]);
-  assert.deepEqual(entry.js, ["src/settings.js", "src/i18n.js", "src/link-submit.js", "src/pixivision.js"]);
-  assert.deepEqual(entry.css, ["src/link-submit.css"]);
+  const context = vm.createContext({ URL });
+  vm.runInContext(read("src/nazurin-sites.js"), context);
+  for (const host of ["www.pixivision.net", "pixivision.net"]) {
+    const entry = JSON.parse(JSON.stringify(context.P2NazurinSites.scriptsForUrl(`https://${host}/`)));
+    assert.deepEqual(entry.matches, [`https://${host}/*`]);
+    assert.deepEqual(entry.js, ["src/site-session.js", "src/settings.js", "src/i18n.js", "src/nazurin-sites.js", "src/link-submit.js", "src/pixivision.js"]);
+    assert.deepEqual(entry.css, ["src/link-submit.css"]);
+  }
 });

@@ -3,15 +3,37 @@
 
   const settings = globalThis.PixivPreviewSettings;
   const { t } = globalThis.P2I18n;
-  globalThis.P2LinkSubmit = ({ resolveTarget, createMessage, duplicateKey }) => {
+  globalThis.P2LinkSubmit = ({
+    resolveTarget, createMessage, duplicateKey
+  }) => {
+    const session = globalThis.P2SiteSession;
+    if (session && !session.claim("link-submit")) return;
+    const listen = (target, type, callback, options) => session ? session.listen(target, type, callback, options) :
+      target.addEventListener(type, callback, options);
     let shortcutCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
     let pointer = null;
     let active = true;
     let processing = false;
+    let revision = 0;
+    let runtimeValid = true;
     let toast = null;
     let toastTimer = 0;
     const queue = [];
     const pending = new Set();
+
+    function deactivate() {
+      active = false;
+      revision += 1;
+      processing = false;
+      pointer = null;
+      queue.length = 0;
+      pending.clear();
+      clearTimeout(toastTimer);
+      toast?.remove();
+      toast = null;
+    }
+
+    session?.onStop(() => { runtimeValid = false; deactivate(); });
 
     function showToast(message, tone = "neutral") {
       clearTimeout(toastTimer);
@@ -30,9 +52,6 @@
       try {
         return await chrome.runtime.sendMessage(message);
       } catch {
-        // Updating/unloading the extension invalidates this tab's runtime.
-        active = false;
-        queue.length = 0;
         return { ok: false, status: "background-unavailable" };
       }
     }
@@ -43,21 +62,32 @@
         "permission-missing": "nazurinPermissionMissing", timeout: "nazurinTimeout",
         "network-error": "nazurinNetworkError", "http-error": "nazurinHttpError",
         "api-error": "apiError", "invalid-response": "nazurinInvalidResponse",
-        "background-unavailable": "backgroundUnavailable"
+        "background-unavailable": "backgroundUnavailable",
+        "unsupported-url": "nazurinUnsupportedUrl"
       };
       return response?.message || t(keys[response?.status] || "nazurinSubmitFailed");
     }
 
     async function processQueue() {
+      const currentRevision = revision;
       processing = true;
-      while (active && queue.length) {
-        const target = queue.shift();
+      while (active && currentRevision === revision && queue.length) {
+        const { target, key } = queue.shift();
         showToast(t("nazurinSending"));
         const response = await send({
           ...createMessage(target),
           requestId: `link-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
         });
-        pending.delete(target);
+        // An old page/BFCache generation must not mutate a restored page's queue.
+        if (!active || currentRevision !== revision) break;
+        if (response?.status === "background-unavailable") {
+          // Updating/unloading the extension invalidates this tab's runtime.
+          runtimeValid = false;
+          deactivate();
+          showToast(t("backgroundUnavailable"), "error");
+          return;
+        }
+        pending.delete(key);
         showToast(response?.ok ? t("submissionSuccess") : failureMessage(response),
           response?.ok ? "success" : "error");
         if (["not-configured", "not-verified", "permission-missing", "background-unavailable"].includes(response?.status)) {
@@ -68,42 +98,39 @@
         // Keep rapid submissions serialized and give the service time between requests.
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      processing = false;
+      if (currentRevision === revision) processing = false;
     }
 
-    document.addEventListener("pointermove", (event) => {
+    listen(document, "pointermove", (event) => {
       pointer = { x: event.clientX, y: event.clientY };
     }, { capture: true, passive: true });
-    document.addEventListener("pointerover", (event) => {
+    listen(document, "pointerover", (event) => {
       pointer = { x: event.clientX, y: event.clientY };
     }, { capture: true, passive: true });
-    document.addEventListener("pointerout", (event) => {
+    listen(document, "pointerout", (event) => {
       if (!event.relatedTarget) pointer = null;
     }, true);
-    window.addEventListener("blur", () => { pointer = null; });
-    window.addEventListener("pagehide", () => {
-      active = false;
-      pointer = null;
-      queue.length = 0;
-      pending.clear();
-    });
-    window.addEventListener("pageshow", () => { active = true; });
+    listen(window, "blur", () => { pointer = null; });
+    listen(window, "pagehide", deactivate);
+    listen(window, "pageshow", () => { active = runtimeValid; });
 
-    document.addEventListener("keydown", (event) => {
+    listen(document, "keydown", (event) => {
       if (!active || event.defaultPrevented || event.code !== shortcutCode || event.repeat ||
           event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.isComposing) return;
       if ([event.target, document.activeElement].some((element) =>
         element?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]'))) return;
       const target = resolveTarget(pointer);
       if (!target) return;
+      const key = target;
+      if (!key) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (pending.has(target)) {
+      if (pending.has(key)) {
         showToast(t(duplicateKey));
         return;
       }
-      pending.add(target);
-      queue.push(target);
+      pending.add(key);
+      queue.push({ target, key });
       showToast(t("nazurinQueued"));
       if (!processing) void processQueue();
     }, true);
@@ -117,12 +144,14 @@
       if (shortcutRevision === initialRevision) shortcutCode = settings.normalizeShortcutCode(
         stored[settings.NAZURIN_SHORTCUT_STORAGE_KEY], settings.DEFAULT_NAZURIN_SHORTCUT_CODE);
     }).catch(() => {});
-    chrome.storage.onChanged.addListener((changes, area) => {
+    const onStorageChanged = (changes, area) => {
       if (area === "sync" && changes[settings.NAZURIN_SHORTCUT_STORAGE_KEY]) {
         shortcutRevision += 1;
         shortcutCode = settings.normalizeShortcutCode(
           changes[settings.NAZURIN_SHORTCUT_STORAGE_KEY].newValue, settings.DEFAULT_NAZURIN_SHORTCUT_CODE);
       }
-    });
+    };
+    if (session) session.storageListener(onStorageChanged);
+    else chrome.storage.onChanged.addListener(onStorageChanged);
   };
 })();

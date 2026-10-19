@@ -43,6 +43,13 @@
   byId("extension-version").textContent = version ? `· v${version}` : "";
   byId("open-options")?.addEventListener("click", () => globalThis.chrome.runtime.openOptionsPage());
 
+  byId("start-setup")?.addEventListener("click", async () => {
+    try {
+      await local.set({ p2SetupRestartRequested: true });
+      await globalThis.chrome.runtime.openOptionsPage();
+    } catch { showStatus("saveFailed"); }
+  });
+
   for (const input of [delayRange, delayNumber]) {
     input.min = String(settings.MIN_HOVER_DELAY_MS);
     input.max = String(settings.MAX_HOVER_DELAY_MS);
@@ -218,6 +225,13 @@
     return response?.message || t(key || "operationFailed");
   }
 
+  async function releaseServerPermission(pattern) {
+    const stored = await local.get("p2EnabledSiteOrigins");
+    if (pattern !== "https://www.pixiv.net/*" && !stored.p2EnabledSiteOrigins?.some((origin) => `${origin}/*` === pattern)) {
+      await globalThis.chrome.permissions.remove({ origins: [pattern] });
+    }
+  }
+
   nazurinSave.addEventListener("click", async () => {
     const config = validateNazurin();
     if (!config || !local || !globalThis.chrome?.permissions) return;
@@ -240,14 +254,14 @@
       hostInput.value = config.host;
       setVerified(false);
       if (oldPattern && oldPattern !== config.permissionPattern) {
-        try { await globalThis.chrome.permissions.remove({ origins: [oldPattern] }); }
+        try { await releaseServerPermission(oldPattern); }
         catch { showNazurin(t("configSavedOldPermissionFailed"), "warning", true); return; }
       }
       updateHttpWarning();
       showNazurin(t("configSavedNeedsTest"), "warning", true);
     } catch {
       if (!saved && oldPattern !== config.permissionPattern) {
-        try { await globalThis.chrome.permissions.remove({ origins: [config.permissionPattern] }); } catch { /* best effort */ }
+        try { await releaseServerPermission(config.permissionPattern); } catch { /* best effort */ }
       }
       showNazurin(t("configSaveFailed"), "error", true);
     } finally { setNazurinBusy(false); }
@@ -284,7 +298,7 @@
     try {
       await local.remove([settings.NAZURIN_API_HOST_STORAGE_KEY, settings.NAZURIN_API_TOKEN_STORAGE_KEY, settings.NAZURIN_VERIFIED_STORAGE_KEY]);
       updateNazurinDependencies("", "");
-      if (pattern) await globalThis.chrome.permissions.remove({ origins: [pattern] });
+      if (pattern) await releaseServerPermission(pattern);
       savedHost = "";
       hostInput.value = tokenInput.value = "";
       setVerified(false);

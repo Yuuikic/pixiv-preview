@@ -5,7 +5,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
-const source = read("src/content.js");
+const source = read("src/preview-core.js");
 const method = source.slice(source.indexOf("    async processNazurinQueue("), source.indexOf("    waitForNazurinGap("));
 
 test("auto-hide closes only matching artworks after accepted responses and remains off by default", async () => {
@@ -18,12 +18,12 @@ test("auto-hide closes only matching artworks after accepted responses and remai
     const context = vm.createContext({ nazurinAutoHide: enabled, requestNazurinSubmit: async () => response,
       NAZURIN_GLOBAL_FAILURES: new Set(), t: (key) => key });
     const manager = vm.runInContext(`new (class { ${method} })()`, context);
-    Object.assign(manager, { nazurinQueueRevision: 1, nazurinQueue: [{ illustId: "123" }],
+    Object.assign(manager, { nazurinQueueRevision: 1, nazurinQueue: [{ workKey: "123" }],
       nazurinPendingIds: new Set(["123"]), nazurinStats: { accepted: 0, failed: 0, skipped: 0 },
       setNazurinStateForArtwork() {}, showNazurinToast() {}, nazurinFailureMessage: () => "failed",
-      allWindows: () => [{ illustId: "123" }, { illustId: "456" }] });
+      allWindows: () => [{ workKey: "123" }, { workKey: "456" }] });
     const closed = [];
-    manager.closeWindow = (preview) => closed.push(preview.illustId);
+    manager.closeWindow = (preview) => closed.push(preview.workKey);
     await manager.processNazurinQueue(1);
     assert.deepEqual(closed, expected);
   }

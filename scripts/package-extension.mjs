@@ -10,7 +10,7 @@ const archive = join(dist, `P2-v${manifest.version}.zip`);
 const runtimeEntries = [
   "manifest.json", "LICENSE", "PRIVACY.md", "THIRD_PARTY_NOTICES.md",
   "_locales", "assets/icon-16.png", "assets/icon-32.png", "assets/icon-48.png",
-  "assets/icon-128.png", "assets/nazurin-48.png", "options", "popup", "src"
+  "assets/icon-128.png", "assets/icon.png", "assets/nazurin-48.png", "options", "popup", "src"
 ];
 
 const check = spawnSync(process.execPath, [join(root, "scripts/check-release.mjs")], {

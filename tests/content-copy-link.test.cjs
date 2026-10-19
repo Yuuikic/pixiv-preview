@@ -5,16 +5,16 @@ const fs = require("node:fs");
 const test = require("node:test");
 const vm = require("node:vm");
 const path = require("node:path");
-const source = fs.readFileSync(path.join(__dirname, "../src/content.js"), "utf8");
+const source = fs.readFileSync(path.join(__dirname, "../src/preview-core.js"), "utf8");
 const methods = source.slice(source.indexOf("    async copyTopmostArtworkLink()"), source.indexOf("    handleViewportResize()"));
 
 function harness(writeText) {
   const context = vm.createContext({ navigator: { clipboard: { writeText } },
-    t: (key) => key, isEditableElement: (target) => target?.editable,
+    document: {}, adapter: {}, t: (key) => key, isEditableElement: (target) => target?.editable,
     copyShortcutCode: "KeyC", stickyShortcutCode: "KeyS", nazurinShortcutCode: "KeyD", nazurinEnabled: false });
   const manager = vm.runInContext(`new (class { ${methods} })()`, context);
   manager.allWindows = () => [{}];
-  manager.topmostWindow = () => ({ illustId: "123456" });
+  manager.topmostWindow = () => ({ workKey: "pixiv:123456", work: { url: "https://www.pixiv.net/artworks/123456" } });
   manager.showNazurinToast = (message) => { manager.message = message; };
   return manager;
 }

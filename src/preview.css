@@ -1,3 +1,12 @@
+img.pfp-source-target {
+  outline: 3px solid #00a6ff !important;
+  outline-offset: -3px !important;
+}
+
+.pfp-root [hidden] {
+  display: none !important;
+}
+
 .pfp-root {
   --pfp-max-width: 720px;
   --pfp-accent: #00a6ff;

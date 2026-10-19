@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "icons": {
@@ -10,8 +10,11 @@
     "48": "assets/icon-48.png",
     "128": "assets/icon-128.png"
   },
-  "permissions": ["storage"],
-  "host_permissions": ["https://www.pixiv.net/*", "https://x.com/*", "https://www.x.com/*", "https://twitter.com/*", "https://www.twitter.com/*", "https://www.pixivision.net/*", "https://pixivision.net/*"],
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
   "optional_host_permissions": [
     "https://*/*",
     "http://localhost/*",
@@ -29,30 +32,27 @@
     }
   },
   "options_page": "options/options.html",
-  "content_scripts": [
-    {
-      "matches": ["https://www.pixiv.net/*"],
-      "js": ["src/settings.js", "src/i18n.js", "src/content.js"],
-      "css": ["src/preview.css"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://x.com/*", "https://www.x.com/*", "https://twitter.com/*", "https://www.twitter.com/*"],
-      "js": ["src/settings.js", "src/i18n.js", "src/link-submit.js", "src/twitter.js"],
-      "css": ["src/link-submit.css"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://www.pixivision.net/*", "https://pixivision.net/*"],
-      "js": ["src/settings.js", "src/i18n.js", "src/link-submit.js", "src/pixivision.js"],
-      "css": ["src/link-submit.css"],
-      "run_at": "document_idle"
-    }
-  ],
   "web_accessible_resources": [
     {
-      "resources": ["assets/nazurin-48.png"],
-      "matches": ["https://www.pixiv.net/*"]
+      "resources": [
+        "assets/nazurin-48.png"
+      ],
+      "matches": [
+        "https://www.pixiv.net/*",
+        "https://yande.re/*",
+        "https://www.yande.re/*",
+        "https://konachan.com/*",
+        "https://www.konachan.com/*",
+        "https://konachan.net/*",
+        "https://www.konachan.net/*",
+        "https://danbooru.donmai.us/*",
+        "https://zerochan.net/*",
+        "https://www.zerochan.net/*"
+      ]
     }
+  ],
+  "minimum_chrome_version": "96",
+  "host_permissions": [
+    "https://www.pixiv.net/*"
   ]
 }
