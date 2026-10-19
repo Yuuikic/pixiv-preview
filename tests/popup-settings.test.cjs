@@ -7,7 +7,7 @@ const test = require("node:test");
 const vm = require("node:vm");
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
 
-function harness({ surface = "popup/popup.html", preference } = {}) {
+function harness({ surface = "popup/popup.html", preference, enabledOrigins = [], host = "https://nazurin.example/" } = {}) {
   const elements = new Map();
   for (const [, id] of read(surface).matchAll(/\bid="([^"]+)"/g)) {
     const events = {};
@@ -18,10 +18,10 @@ function harness({ surface = "popup/popup.html", preference } = {}) {
       async emit(name) { for (const callback of events[name] || []) await callback({}); }
     });
   }
-  const changes = [], writes = [];
+  const changes = [], writes = [], removedPermissions = [];
   const sync = preference === undefined ? {} : { nazurinKonachanNetToCom: preference };
   const local = {
-    nazurinApiHost: "https://nazurin.example/",
+    nazurinApiHost: host, p2EnabledSiteOrigins: enabledOrigins,
     nazurinApiToken: "test:token", nazurinConnectionVerified: true
   };
   const rows = ["nazurin-shortcut", "nazurin-auto-hide"].map((id) => ({
@@ -32,7 +32,7 @@ function harness({ surface = "popup/popup.html", preference } = {}) {
     window: { setTimeout() { return 1; } },
     document: {
       getElementById(id) {
-        if (id === "open-options" && !elements.has(id)) return null;
+        if (["open-options", "start-setup"].includes(id) && !elements.has(id)) return null;
         assert.ok(elements.has(id), id);
         return elements.get(id);
       },
@@ -42,6 +42,7 @@ function harness({ surface = "popup/popup.html", preference } = {}) {
       }
     },
     chrome: {
+      permissions: { async remove(details) { removedPermissions.push(JSON.parse(JSON.stringify(details))); return true; } },
       runtime: { getManifest() { return { version: "1.1.1" }; } },
       storage: {
         sync: {
@@ -57,7 +58,7 @@ function harness({ surface = "popup/popup.html", preference } = {}) {
             }
           }
         },
-        local: { async get(defaults) {
+        local: { async remove(keys) { for (const key of keys) delete local[key]; }, async get(defaults) {
           if (Array.isArray(defaults)) return Object.fromEntries(defaults.map((key) => [key, local[key]]));
           return { ...defaults, ...local };
         } },
@@ -69,7 +70,7 @@ function harness({ surface = "popup/popup.html", preference } = {}) {
   vm.runInContext(read("src/settings.js"), context);
   vm.runInContext(read("popup/popup.js"), context);
   return {
-    elements, writes, local,
+    elements, writes, local, removedPermissions,
     async flush() { for (let i = 0; i < 20; i++) await Promise.resolve(); }
   };
 }
@@ -86,5 +87,17 @@ test("both settings surfaces load and reset without a Konachan switch or credent
     assert.ok(h.writes.length > 0);
     assert.ok(h.writes.every((values) => !Object.keys(values).some((key) =>
       ["nazurinKonachanNetToCom", "nazurinApiHost", "nazurinApiToken", "nazurinConnectionVerified"].includes(key))));
+  }
+});
+
+test("clearing Nazurin releases only server access and preserves an enabled website's grant", async () => {
+  for (const shared of [false, true]) {
+    const h = harness({ host: "https://yande.re/nazurin/", enabledOrigins: shared ? ["https://yande.re"] : [] });
+    await h.flush();
+    await h.elements.get("nazurin-clear").emit("click"); await h.flush();
+    assert.equal(h.local.nazurinApiHost, undefined);
+    assert.equal(h.local.nazurinApiToken, undefined);
+    assert.deepEqual(h.local.p2EnabledSiteOrigins, shared ? ["https://yande.re"] : []);
+    assert.deepEqual(h.removedPermissions, shared ? [] : [{ origins: ["https://yande.re/*"] }]);
   }
 });

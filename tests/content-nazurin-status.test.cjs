@@ -6,7 +6,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-const source = fs.readFileSync(path.join(__dirname, "../src/content.js"), "utf8");
+const source = fs.readFileSync(path.join(__dirname, "../src/preview-core.js"), "utf8");
 const statusFunction = source.slice(source.indexOf("  function requestNazurinStatus("),
   source.indexOf("  async function getArtworkMetadata("));
 

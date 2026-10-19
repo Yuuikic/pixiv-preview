@@ -4,14 +4,18 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
-const source = fs.readFileSync(path.join(__dirname, "../src/content.js"), "utf8");
-const functions = source.slice(source.indexOf("  function cancelBackgroundRequest("),
-  source.indexOf("  function requestNazurinStatus("));
+const read = (name) => fs.readFileSync(path.join(__dirname, "../src/", name), "utf8");
+const core = read("preview-core.js");
+const pixiv = read("content.js");
+const functions = core.slice(core.indexOf("  function cancelBackgroundRequest("), core.indexOf("  function imageAnchorCandidate(")) +
+  "globalThis.P2PreviewCore = {cancelRequest: cancelBackgroundRequest};" +
+  pixiv.slice(pixiv.indexOf("  function requestArtworkPages("), pixiv.indexOf("  function artworkAnchorsForId(")) +
+  core.slice(core.indexOf("  function requestNazurinSubmit("), core.indexOf("  function requestNazurinStatus("));
 
 test("invalidated runtime rejects metadata cleanly and resolves submission failure", async () => {
   const context = vm.createContext({ chrome: { runtime: { sendMessage() {
     throw new Error("Extension context invalidated.");
-  } } }, DOMException });
+  } } }, DOMException, adapter: { submissionMessage: () => ({ type: "pfp-nazurin-submit" }) } });
   vm.runInContext(functions, context);
   let listenerRemoved = false;
   const signal = { aborted: false, addEventListener() {}, removeEventListener() { listenerRemoved = true; } };

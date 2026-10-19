@@ -36,6 +36,7 @@ function harness({ shortcut = "KeyD", response = { ok: true, status: "accepted" 
     P2I18n: { t: (key) => key }
   });
   vm.runInContext(read("src/settings.js"), context);
+  vm.runInContext(read("src/nazurin-sites.js"), context);
   vm.runInContext(read("src/link-submit.js"), context);
   vm.runInContext(read("src/twitter.js"), context);
 
@@ -117,7 +118,7 @@ test("photo viewer submits the URL's tweet from images, empty space, or hovered 
   }
 });
 
-test("photo viewer follows SPA URL changes and restores hover selection when closed", async () => {
+test("tweet details and photo viewer follow SPA URL changes, returning to hover on lists", async () => {
   const h = harness();
   h.hover(h.article([{ href: "https://x.com/replier/status/555", time: true }]));
   h.navigate("https://x.com/artist/status/444/photo/1");
@@ -130,7 +131,7 @@ test("photo viewer follows SPA URL changes and restores hover selection when clo
   h.key(); await h.gap();
   assert.deepEqual(h.calls.map((call) => call.tweetUrl), [
     "https://twitter.com/artist/status/444", "https://twitter.com/artist/status/444",
-    "https://twitter.com/another/status/666", "https://twitter.com/replier/status/555"
+    "https://twitter.com/another/status/666", "https://twitter.com/artist/status/444"
   ]);
   h.navigate("https://x.com/home");
   h.setTarget(null);
@@ -210,7 +211,9 @@ test("reports configuration errors and allows retry after configuring the servic
 
 test("Twitter pages load only link-submission scripts and notification styles", () => {
   const manifest = JSON.parse(read("manifest.json"));
-  const entry = manifest.content_scripts.find((entry) => entry.matches.includes("https://x.com/*"));
-  assert.deepEqual(entry.js, ["src/settings.js", "src/i18n.js", "src/link-submit.js", "src/twitter.js"]);
+  const context = vm.createContext({ URL });
+  vm.runInContext(read("src/nazurin-sites.js"), context);
+  const entry = JSON.parse(JSON.stringify(context.P2NazurinSites.scriptsForUrl("https://x.com/home")));
+  assert.deepEqual(entry.js, ["src/site-session.js", "src/settings.js", "src/i18n.js", "src/nazurin-sites.js", "src/link-submit.js", "src/twitter.js"]);
   assert.deepEqual(entry.css, ["src/link-submit.css"]);
 });

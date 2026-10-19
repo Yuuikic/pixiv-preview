@@ -19,11 +19,17 @@ function createHarness({
   response = { ok: true, status: 200, json: async () => ({ error: 0 }) },
   fetchImpl = null,
   timeoutImmediately = false,
-  konachanNetToCom = true
+  siteEnabled = true,
+  konachanNetToCom = true,
+  version = "1.2.0",
+  localState = {},
+  openOptionsFails = false
 } = {}) {
   let listener;
   let installedListener;
   let optionsPageOpenCount = 0;
+  const localWrites = [];
+  const errors = [];
   const fetchCalls = [];
   const fetchErrors = [];
   const context = vm.createContext({
@@ -31,6 +37,7 @@ function createHarness({
     DOMException,
     URL,
     clearTimeout,
+    console: { error(...args) { errors.push(args); } },
     setTimeout: timeoutImmediately
       ? (callback, milliseconds) => setTimeout(callback, milliseconds >= 10000 ? 0 : milliseconds)
       : setTimeout,
@@ -46,8 +53,12 @@ function createHarness({
     chrome: {
       runtime: {
         id: "pixiv-preview-test",
+        getManifest() { return { version }; },
         onInstalled: { addListener(callback) { installedListener = callback; } },
-        openOptionsPage() { optionsPageOpenCount += 1; },
+        async openOptionsPage() {
+          if (openOptionsFails) throw new Error("Options unavailable");
+          optionsPageOpenCount += 1;
+        },
         onMessage: { addListener(callback) { listener = callback; } }
       },
       storage: {
@@ -55,13 +66,24 @@ function createHarness({
           async get() { return { nazurinKonachanNetToCom: konachanNetToCom }; }
         },
         local: {
+          async set(values) {
+            const stored = JSON.parse(JSON.stringify(values));
+            localWrites.push(stored);
+            Object.assign(localState, stored);
+          },
           async get() {
-            return { nazurinApiHost: host, nazurinApiToken: token, nazurinConnectionVerified: verified };
+            return { nazurinApiHost: host, nazurinApiToken: token, nazurinConnectionVerified: verified, p2EnabledSiteOrigins: siteEnabled ? [
+              "www.pixiv.net", "x.com", "www.x.com", "twitter.com", "www.twitter.com", "pixivision.net", "www.pixivision.net",
+              "yande.re", "konachan.net", "lolibooru.moe", "danbooru.donmai.us", "www.zerochan.net", "gelbooru.com",
+              "catzz.artstation.com", "wallhaven.cc", "t.bilibili.com", "m.weibo.cn", "artist.deviantart.com", "artist.lofter.com",
+              "kemono.cr", "telegra.ph", "bsky.app"
+            ].map((host) => `https://${host}`) : [], ...localState };
           }
         }
       },
       permissions: {
         async contains(details) {
+          if (details.origins[0] !== (host ? `${new URL(host).origin}/*` : null)) return true;
           const expectedPattern = host ? `${new URL(host).origin}/*` : null;
           assert.equal(JSON.stringify(details), JSON.stringify({ origins: [expectedPattern] }));
           return permitted;
@@ -72,7 +94,7 @@ function createHarness({
   context.globalThis = context;
   context.importScripts = (...files) => {
     for (const file of files) {
-      assert.ok(["settings.js", "nazurin-sites.js"].includes(file));
+      assert.ok(["settings.js", "nazurin-sites.js", "site-access.js"].includes(file));
       vm.runInContext(file === "settings.js" ? settingsSource :
         fs.readFileSync(path.join(projectRoot, "src", file), "utf8"), context, { filename: file });
     }
@@ -92,23 +114,89 @@ function createHarness({
   }
 
   return {
-    dispatch, fetchCalls, fetchErrors,
-    install(reason) { installedListener({ reason }); },
+    dispatch, fetchCalls, fetchErrors, localWrites, localState, errors,
+    setVersion(value) { version = value; },
+    install(reason, previousVersion) { return installedListener({ reason, previousVersion }); },
     get optionsPageOpenCount() { return optionsPageOpenCount; }
   };
 }
 
-test("opens the settings tab on first install only", () => {
+test("opens settings on first install but ignores unrelated update events", async () => {
   const harness = createHarness();
-  harness.install("update");
-  harness.install("chrome_update");
-  harness.install("shared_module_update");
+  await harness.install("update");
+  await harness.install("update", "invalid");
+  await harness.install("update", "1.1.2");
+  await harness.install("update", "1.2.0");
+  await harness.install("chrome_update", "1.1.1");
+  await harness.install("shared_module_update", "1.1.1");
   assert.equal(harness.optionsPageOpenCount, 0);
-  harness.install("install");
+  assert.deepEqual(harness.localWrites, []);
+  await harness.install("install");
   assert.equal(harness.optionsPageOpenCount, 1);
+  assert.deepEqual(harness.localWrites, [{ p2V120GuideShown: true }]);
 
   const manifest = JSON.parse(fs.readFileSync(path.join(projectRoot, "manifest.json"), "utf8"));
   assert.equal(manifest.options_page, "options/options.html");
+});
+
+test("upgrading from 1.1.1 opens the guide once and persists the record across worker restarts and later updates", async () => {
+  const harness = createHarness();
+  const updating = harness.install("update", "1.1.1");
+  assert.equal(harness.optionsPageOpenCount, 0);
+  await updating;
+  assert.deepEqual(harness.localWrites, [{ p2SetupRestartRequested: true }, { p2V120GuideShown: true }]);
+  assert.equal(harness.optionsPageOpenCount, 1);
+  const restarted = createHarness({ version: "1.3.0", localState: harness.localState });
+  await restarted.install("update", "1.1.1");
+  await restarted.install("update", "1.2.0");
+  assert.equal(restarted.optionsPageOpenCount, 0);
+  assert.deepEqual(restarted.localWrites, []);
+  await harness.install("update", "1.2.0");
+  assert.equal(harness.optionsPageOpenCount, 1);
+  assert.equal(harness.localWrites.length, 2);
+});
+
+test("all legacy releases can upgrade directly to 1.2.0 or any later version and retain settings", async () => {
+  for (const previous of ["0.9.0", "1.0.0", "1.0.1", "1.1.0", "1.1.1", "1.1.1.0"]) {
+    for (const version of ["1.2.0", "1.3.0", "1.10.0", "2.0.0"]) {
+      const localState = { hoverDelayMs: 150, nazurinApiToken: "saved-token", nazurinConnectionVerified: true };
+      const harness = createHarness({ version, localState });
+      await harness.install("update", previous);
+      assert.equal(harness.optionsPageOpenCount, 1, `${previous} -> ${version}`);
+      assert.deepEqual(localState, { hoverDelayMs: 150, nazurinApiToken: "saved-token", nazurinConnectionVerified: true,
+        p2SetupRestartRequested: true, p2V120GuideShown: true });
+    }
+  }
+});
+
+test("legacy updates before 1.2.0 and same-version reloads never trigger the migration", async () => {
+  for (const [previous, version] of [["1.0.0", "1.1.1"], ["1.1.1", "1.1.1"],
+    ["1.2.0", "1.2.0"], ["1.3.0", "1.3.0"], ["1.10.0", "1.11.0"]]) {
+    const harness = createHarness({ version });
+    await harness.install("update", previous);
+    assert.equal(harness.optionsPageOpenCount, 0);
+    assert.deepEqual(harness.localWrites, []);
+  }
+});
+
+test("first install records the shown guide so a later legacy upgrade cannot reopen it", async () => {
+  const harness = createHarness();
+  await harness.install("install");
+  assert.equal(harness.localState.p2V120GuideShown, true);
+  harness.setVersion("1.3.0");
+  await harness.install("update", "1.1.0");
+  assert.equal(harness.optionsPageOpenCount, 1);
+});
+
+test("a failed automatic open does not record the guide as shown and can be retried", async () => {
+  const harness = createHarness({ openOptionsFails: true });
+  await harness.install("update", "1.1.1");
+  assert.equal(harness.localState.p2V120GuideShown, undefined);
+  assert.equal(harness.errors.length, 1);
+  const retry = createHarness({ version: "1.3.0", localState: harness.localState });
+  await retry.install("update", "1.1.1");
+  assert.equal(retry.optionsPageOpenCount, 1);
+  assert.equal(retry.localState.p2V120GuideShown, true);
 });
 
 test("POSTs only the internally constructed canonical Pixiv artwork URL", async () => {
@@ -169,44 +257,9 @@ test("Twitter submissions retain connection and permission checks", async () => 
   }
 });
 
-test("pixivision submits only canonical Pixiv artwork URLs", async () => {
-  for (const hostname of ["www.pixivision.net", "pixivision.net"]) {
-    const harness = createHarness();
-    const result = await harness.dispatch({
-      type: "pfp-nazurin-submit", illustId: "142138569", requestId: "pv-1",
-      url: "https://attacker.invalid/ignored"
-    }, `https://${hostname}/zh/a/11692`);
-    assert.deepEqual(result, { ok: true, status: "accepted" });
-    assert.equal(harness.fetchCalls.length, 1);
-    assert.deepEqual(JSON.parse(harness.fetchCalls[0][1].body), {
-      url: "https://www.pixiv.net/artworks/142138569"
-    });
-  }
-});
-
-test("pixivision retains Nazurin configuration, permission, and ID validation", async () => {
-  for (const [options, status] of [
-    [{ verified: false }, "not-verified"], [{ permitted: false }, "permission-missing"],
-    [{ host: null }, "not-configured"]
-  ]) {
-    const harness = createHarness(options);
-    assert.deepEqual(await harness.dispatch({
-      type: "pfp-nazurin-submit", illustId: "142138569", requestId: "pv-2"
-    }, "https://www.pixivision.net/zh/a/11692"), { ok: false, status });
-    assert.equal(harness.fetchCalls.length, 0);
-  }
-  const harness = createHarness();
-  for (const illustId of ["https://evil.example/", "123?bad=1", "", null]) {
-    assert.deepEqual(await harness.dispatch({
-      type: "pfp-nazurin-submit", illustId, requestId: "pv-invalid"
-    }, "https://www.pixivision.net/zh/a/11692"), { ok: false, status: "invalid-response" });
-  }
-  assert.equal(harness.fetchCalls.length, 0);
-});
-
 test("pixivision cannot fetch preview metadata or submit tweets; rejects other origins", async () => {
   const harness = createHarness();
-  for (const type of ["pfp-get-pages", "pfp-nazurin-twitter-submit", "pfp-nazurin-test"]) {
+  for (const type of ["pfp-get-pages", "pfp-nazurin-twitter-submit", "pfp-nazurin-test", "pfp-nazurin-link-submit"]) {
     await assert.rejects(harness.dispatch({
       type, illustId: "123", requestId: "pv-route", tweetUrl: "https://x.com/a/status/1"
     }, "https://www.pixivision.net/zh/a/11692"), /not handled/);
@@ -226,7 +279,7 @@ test("rejects arbitrary URLs and malformed tweet paths", async () => {
     "https://evil.example/artist/status/123", "https://x.com.evil.example/artist/status/123",
     "http://x.com/artist/status/123", "https://user:pass@x.com/artist/status/123",
     "https://x.com:444/artist/status/123", "https://x.com/artist/status/nope",
-    "https://x.com/artist/status/123/retweets", "https://x.com/home", "", null
+    "https://x.com/home", "", null
   ]) {
     const harness = createHarness();
     assert.deepEqual(await harness.dispatch({
@@ -324,10 +377,10 @@ test("works end-to-end against a local mock Nazurin HTTP server", async (t) => {
   for (const [source, url, expected] of [
     ["https://yande.re/", "https://yande.re/post/show/42", "https://yande.re/post/show/42"],
     ["https://konachan.net/", "https://konachan.net/post/show/42", "https://konachan.com/post/show/42"],
-    ["https://wallhaven.cc/", "https://wallhaven.cc/w/abc123", "https://wallhaven.cc/w/abc123"]
+    ["https://danbooru.donmai.us/", "https://danbooru.donmai.us/posts/42", "https://danbooru.donmai.us/posts/42"]
   ]) {
     assert.deepEqual(await localHarness.dispatch({
-      type: "pfp-nazurin-link-submit", url, requestId: "local-generic"
+      type: "pfp-nazurin-link-submit", url, requestId: "local-board"
     }, source), { ok: true, status: "accepted" });
     assert.deepEqual(requests.at(-1), {
       method: "POST", url: "/local:token/api", body: JSON.stringify({ url: expected })
@@ -382,30 +435,17 @@ test("normalizes HTTP, API, and malformed response failures", async (t) => {
   });
 });
 
-test("background independently validates and canonicalizes generic work targets", async () => {
+test("background independently validates and canonicalizes board work targets", async () => {
   const cases = [
-    ["https://yande.re/post", "https://yande.re/post/show/42?tags=a%20b#image", "https://yande.re/post/show/42"],
-    ["https://danbooru.donmai.us/", "https://safebooru.donmai.us/posts/42"],
+    ["https://yande.re/post", "https://yande.re/post/show/42?tags=a#image", "https://yande.re/post/show/42"],
+    ["https://danbooru.donmai.us/", "https://danbooru.donmai.us/posts/42"],
     ["https://konachan.net/post", "https://konachan.com/post/show/42"],
-    ["https://lolibooru.moe/", "https://lolibooru.moe/post/show/42"],
-    ["https://www.zerochan.net/", "https://static.zerochan.net/A.full.42.jpg", "https://www.zerochan.net/42"],
-    ["https://gelbooru.com/", "https://gelbooru.com/index.php?id=42&s=view&page=post#image", "https://gelbooru.com/index.php?page=post&s=view&id=42"],
-    ["https://catzz.artstation.com/", "https://www.artstation.com/artwork/abc"],
-    ["https://wallhaven.cc/", "http://whvn.cc/abc123", "https://wallhaven.cc/w/abc123"],
-    ["https://t.bilibili.com/", "https://www.bilibili.com/opus/42", "https://t.bilibili.com/42"],
-    ["https://m.weibo.cn/", "https://weibo.cn/appurl?scheme=x&lfid=42", "https://m.weibo.cn/detail/42"],
-    ["https://artist.deviantart.com/", "https://www.deviantart.com/artist/art/title-42"],
-    ["https://artist.lofter.com/", "https://artist.lofter.com/post/abc_def"],
-    ["https://kemono.cr/", "https://kemono.su/fanbox/user/1/post/2/revision/3"],
-    ["https://telegra.ph/", "https://graph.org/Page-01-01"],
-    ["https://bsky.app/", "https://bsky.app/profile/artist.bsky.social/post/abc"],
-    ["https://yande.re/post", "https://pixiv.net/artworks/42?x=1#image", "https://www.pixiv.net/artworks/42"],
-    ["https://yande.re/post", "https://mobile.twitter.com/artist/status/42?x=1#image", "https://twitter.com/artist/status/42"]
+    ["https://www.zerochan.net/", "https://zerochan.net/42", "https://www.zerochan.net/42"]
   ];
   for (const [source, url, expected = url] of cases) {
     const h = createHarness();
     assert.deepEqual(await h.dispatch({
-      type: "pfp-nazurin-link-submit", url, requestId: "generic-valid"
+      type: "pfp-nazurin-link-submit", url, requestId: "board-valid"
     }, source), { ok: true, status: "accepted" }, source);
     assert.equal(h.fetchCalls.length, 1);
     assert.deepEqual(JSON.parse(h.fetchCalls[0][1].body), { url: expected });
@@ -415,14 +455,13 @@ test("background independently validates and canonicalizes generic work targets"
   }
 });
 
-test("generic sources cannot access legacy routes or impersonate extension pages and top frames", async () => {
+test("board sources cannot access legacy routes or impersonate extension pages and top frames", async () => {
   const h = createHarness();
-  const submission = { type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "generic-security" };
+  const submission = { type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "board-security" };
   for (const source of [
     "https://evil.example/", "http://yande.re/", "https://yande.re.evil.example/",
     "https://www.pixiv.net/", "https://x.com/", "https://www.pixivision.net/",
-    "https://cdn.donmai.us/", "https://user:pass@yande.re/", "https://yande.re:444/",
-    "https://pixiv.net/artworks/42", "https://mobile.x.com/home", "https://mobile.twitter.com/home"
+    "https://user:pass@yande.re/", "https://yande.re:444/"
   ]) await assert.rejects(h.dispatch(submission, source), /not handled/, source);
   for (const sender of [{ id: "other-extension" }, { frameId: 1 }, { frameId: undefined }]) {
     await assert.rejects(h.dispatch(submission, "https://yande.re/", sender), /not handled/);
@@ -430,26 +469,26 @@ test("generic sources cannot access legacy routes or impersonate extension pages
   }
   for (const type of [
     "pfp-get-pages", "pfp-cancel-pages", "pfp-nazurin-submit", "pfp-nazurin-twitter-submit",
-    "pfp-nazurin-test", "pfp-cancel-nazurin"
+    "pfp-nazurin-test"
   ]) {
     await assert.rejects(h.dispatch({
-      type, illustId: "42", tweetUrl: "https://x.com/a/status/42", requestId: "generic-route"
+      type, illustId: "42", tweetUrl: "https://x.com/a/status/42", requestId: "board-route"
     }, "https://yande.re/"), /not handled/, type);
   }
   assert.equal(h.fetchCalls.length, 0);
 });
 
-test("generic route rejects unsafe targets and malformed request IDs before fetching", async () => {
+test("board route rejects unsafe targets and malformed request IDs before fetching", async () => {
   const h = createHarness();
   for (const url of [
     "https://evil.example/", "https://safebooru.org/", "https://yande.re.evil.example/",
     "https://space.bilibili.com/", "https://www.pixivision.net/zh/a/42", "/post/show/42",
     "javascript:alert(1)", "file:///tmp/test", "https://user:pass@yande.re/",
-    "https://yande.re:444/", "https://yande.re/post", "https://wallhaven.cc/latest",
+    "https://yande.re:444/", "https://yande.re/post",
     "https://yande.re/post?url=https://www.pixiv.net/artworks/42", null, {}
   ]) {
     assert.deepEqual(await h.dispatch({
-      type: "pfp-nazurin-link-submit", url, requestId: "generic-invalid"
+      type: "pfp-nazurin-link-submit", url, requestId: "board-invalid"
     }, "https://yande.re/"), { ok: false, status: "unsupported-url" });
   }
   for (const requestId of [null, "", {}, "bad/request", "x".repeat(81)]) {
@@ -460,14 +499,14 @@ test("generic route rejects unsafe targets and malformed request IDs before fetc
   assert.equal(h.fetchCalls.length, 0);
 });
 
-test("generic route retains configuration, verification and API permission checks", async () => {
+test("board route retains configuration, verification and API permission checks", async () => {
   for (const [options, status] of [
     [{ host: null }, "not-configured"], [{ token: null }, "not-configured"],
     [{ verified: false }, "not-verified"], [{ permitted: false }, "permission-missing"]
   ]) {
     const h = createHarness(options);
     assert.deepEqual(await h.dispatch({
-      type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "generic-config"
+      type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "board-config"
     }, "https://yande.re/"), { ok: false, status });
     assert.equal(h.fetchCalls.length, 0);
   }
@@ -487,8 +526,8 @@ test("Konachan conversion always applies, even when an obsolete saved preference
   assert.equal(JSON.parse(h.fetchCalls[1][1].body).url, expected);
 });
 
-test("generic route uses the same API/timeout error responses as legacy submissions", async () => {
-  const message = { type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "generic-error" };
+test("board route uses the same API/timeout error responses as legacy submissions", async () => {
+  const message = { type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42", requestId: "board-error" };
   for (const [options, status] of [
     [{ response: { ok: false, status: 503 } }, "http-error"],
     [{ response: { ok: true, json: async () => ({ error: 3 }) } }, "api-error"],
@@ -504,4 +543,62 @@ test("generic route uses the same API/timeout error responses as legacy submissi
     assert.equal(result.ok, false);
     assert.equal(result.status, status);
   }
+});
+
+test("site authorization is independent of Nazurin configuration", async () => {
+  const h = createHarness({ siteEnabled: false });
+  assert.deepEqual(await h.dispatch({ type: "pfp-nazurin-submit", illustId: "42", requestId: "site-disabled" }), {
+    ok: false, status: "permission-missing"
+  });
+  assert.deepEqual(await h.dispatch({ type: "pfp-nazurin-status" }), { configured: false, verified: false });
+  assert.deepEqual(await h.dispatch({ type: "p2-site-status" }), { enabled: false });
+  assert.equal(h.fetchCalls.length, 0);
+});
+
+
+test("web pages cannot prepare, cancel or change website authorizations", async () => {
+  const h = createHarness();
+  for (const type of ["p2-site-prepare", "p2-site-cancel", "p2-site-enable", "p2-site-disable", "p2-site-list"]) {
+    await assert.rejects(h.dispatch({ type, origin: "https://konachan.com", requestId: "page-attempt" }, "https://yande.re/post"), /not handled/);
+  }
+  assert.equal(h.fetchCalls.length, 0);
+});
+
+test("leaving a board preview can cancel its in-flight Nazurin request", async () => {
+  let signal;
+  let started;
+  const ready = new Promise((resolve) => { started = resolve; });
+  const h = createHarness({ fetchImpl: (_url, options) => new Promise((_resolve, reject) => {
+    signal = options.signal;
+    signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+    started();
+  }) });
+  const pending = h.dispatch({ type: "pfp-nazurin-link-submit", url: "https://yande.re/post/show/42",
+    requestId: "board-cancel" }, "https://yande.re/post");
+  await ready;
+  await h.dispatch({ type: "pfp-cancel-nazurin", requestId: "board-cancel" }, "https://yande.re/post");
+  assert.equal(signal.aborted, true);
+  assert.equal((await pending).ok, false);
+});
+
+test("pixivision submits Pixiv links through the existing configuration and permission checks", async () => {
+  for (const host of ["www.pixivision.net", "pixivision.net"]) {
+    const h = createHarness();
+    assert.deepEqual(await h.dispatch({ type: "pfp-nazurin-submit", illustId: "142138569", requestId: "pv-restored" },
+      `https://${host}/zh/a/11692`), { ok: true, status: "accepted" });
+    assert.deepEqual(JSON.parse(h.fetchCalls[0][1].body), { url: "https://www.pixiv.net/artworks/142138569" });
+  }
+  for (const [options, status] of [[{ verified: false }, "not-verified"],
+    [{ permitted: false }, "permission-missing"], [{ host: null }, "not-configured"], [{ siteEnabled: false }, "permission-missing"]]) {
+    const h = createHarness(options);
+    assert.deepEqual(await h.dispatch({ type: "pfp-nazurin-submit", illustId: "42", requestId: "pv-check" },
+      "https://www.pixivision.net/zh/a/11692"), { ok: false, status });
+    assert.equal(h.fetchCalls.length, 0);
+  }
+  const h = createHarness();
+  for (const illustId of ["", null, "123?bad=1", "https://evil.example/"]) {
+    assert.deepEqual(await h.dispatch({ type: "pfp-nazurin-submit", illustId, requestId: "pv-invalid" },
+      "https://www.pixivision.net/zh/a/11692"), { ok: false, status: "invalid-response" });
+  }
+  assert.equal(h.fetchCalls.length, 0);
 });

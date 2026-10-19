@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  if (globalThis.P2SiteSession && !globalThis.P2SiteSession.claim("twitter.js")) return;
 
   const tweetSelector = 'article[data-testid="tweet"]';
 
@@ -7,9 +8,8 @@
     try {
       const url = new URL(link.href, location.href);
       if (url.protocol !== "https:" ||
-          !["x.com", "www.x.com", "twitter.com", "www.twitter.com"].includes(url.hostname)) return null;
-      const match = url.pathname.match(/^\/([a-z0-9_]{1,15})\/status\/(\d+)(?:\/(?:photo|video)\/\d+)?\/?$/i);
-      return match ? `https://twitter.com/${match[1]}/status/${match[2]}` : null;
+          !["x.com", "www.x.com", "twitter.com", "www.twitter.com", "mobile.x.com", "mobile.twitter.com"].includes(url.hostname)) return null;
+      return globalThis.P2NazurinSites.targetUrl(url.href);
     } catch {
       return null;
     }
@@ -31,16 +31,16 @@
       links.map(tweetUrlFromLink).find(Boolean) || null;
   }
 
-  function currentPhotoTweetUrl() {
-    // Read on every keypress: opening, switching, and closing X's photo viewer
+  function currentTweetUrl() {
+    // Read on every keypress: navigating tweet details or X's photo viewer
     // changes the URL without reloading this content script.
     const url = new URL(location.href);
-    if (!/^\/[a-z0-9_]{1,15}\/status\/\d+\/photo\/\d+\/?$/i.test(url.pathname)) return null;
+    if (!/^\/(?:[a-z0-9_]{1,15}|i\/web)\/status\/\d+(?:\/(?:photo|video)\/\d+)?\/?$/i.test(url.pathname)) return null;
     return tweetUrlFromLink({ href: url.href });
   }
 
   globalThis.P2LinkSubmit({
-    resolveTarget: (pointer) => currentPhotoTweetUrl() || hoveredTweetUrl(pointer),
+    resolveTarget: (pointer) => currentTweetUrl() || hoveredTweetUrl(pointer),
     createMessage: (tweetUrl) => ({ type: "pfp-nazurin-twitter-submit", tweetUrl }),
     duplicateKey: "tweetAlreadyQueued"
   });

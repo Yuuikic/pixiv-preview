@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
-const source = fs.readFileSync(path.join(__dirname, "../src/content.js"), "utf8");
+const source = fs.readFileSync(path.join(__dirname, "../src/preview-core.js"), "utf8");
 const methods = source.slice(source.indexOf("    bringToFront(preview)"), source.indexOf("    closeWindow(preview)")) +
   source.slice(source.indexOf("    topmostWindow("), source.indexOf("    enqueueNazurin("));
 

@@ -4,19 +4,19 @@
   <img src="assets/icon.png" width="128" alt="P2 logo">
 </p>
 
-<p align="center">A lightweight hover preview extension for Pixiv.</p>
+<p align="center">A hover preview extension for Pixiv.</p>
 
 <p align="center"><a href="README.md">简体中文</a> · English</p>
 
-P2 is a Chrome extension for previewing Pixiv artworks, with dedicated support for collecting images through [Nazurin](https://github.com/y-young/nazurin).
+**P2** is a Chrome extension for quickly previewing illustrations, with dedicated support for collecting images through [Nazurin](https://github.com/y-young/nazurin).
 
-Browse artwork in your following feed, search results, rankings, bookmarks, and artist profiles without opening each artwork page. Previews work out of the box and can be used independently, with no Nazurin setup required.
+When browsing your Pixiv following feed, search results, rankings, bookmarks, and artist profiles, simply hover over any thumbnail to inspect the artwork without repeatedly opening new tabs.
 
-- **See the whole image:** Landscape, portrait, and tall images keep their proportions without cropping.
-- **Browse multi-image works:** View the other images in an artwork directly in the preview.
-- **Keep several artworks open:** Pin a window to keep it open while previewing other works.
-- **Arrange your windows:** Drag to move, and use the scroll wheel or window edges to resize proportionally.
-- **Optional Nazurin integration:** Connect your own service to submit artworks to Nazurin for collection.
+- **See the full artwork:** Landscape, portrait, and long illustrations are displayed in their original aspect ratio without cropping.
+- **Flip through multi-page works:** Browse every page of a multi-image artwork right inside the floating preview.
+- **Pin and compare multiple works:** Pin any preview to keep it on screen while you continue hovering and opening other artworks.
+- **Move and resize freely:** Drag windows anywhere, resize proportionally with the scroll wheel or window edges, or auto-arrange pinned windows beside the page content.
+- **Optional Nazurin integration:** Connect your self-hosted Nazurin service to submit individual artworks or batch-submit all pinned previews at once.
 
 ## Install and update
 
@@ -24,173 +24,156 @@ Browse artwork in your following feed, search results, rankings, bookmarks, and 
 
 1. Open the [P2: Pixiv Preview listing on the Chrome Web Store](https://chromewebstore.google.com/detail/p2-pixiv-preview/mpdecaobbbnbfdbhnjnipbbepnokepbd).
 2. Click **Add to Chrome** and follow the browser prompts.
-3. Open or refresh a Pixiv page to start using P2.
+3. After installation, a settings tab opens with a brief setup guide. Complete or skip the guide, then open or refresh any Pixiv page to start using P2.
 
-When installed from the Chrome Web Store, P2 is updated automatically by Chrome after a new version has been reviewed and published. You do not need to download files or reload the extension manually.
+When installed from the Chrome Web Store, Chrome updates the extension automatically once new releases are published.
 
-> [!WARNING]
-> Every Chrome Web Store update must pass store review, and review and distribution times may vary. The store version may therefore temporarily lag behind the latest GitHub Release.
+The first update from `1.1.1` or earlier to `1.2.0` or later automatically opens the new setup guide while preserving preferences, shortcuts, and Nazurin settings. P2 records that the guide was opened, so closing or skipping it will not cause later updates to open it again. Pixiv stays enabled by default; Twitter/X and pixivision, previously enabled automatically, now need to be enabled under **Website access**, followed by a page refresh.
+
+> [!NOTE]
+> Every Chrome Web Store update goes through store review, so the store version may occasionally lag slightly behind the latest GitHub Release.
 
 ### Install locally (Developer mode)
 
-Local installation is useful for testing the latest GitHub Release or when the Chrome Web Store is unavailable.
+Useful if you want to try the latest GitHub Release right away or cannot access the Chrome Web Store.
 
-1. Download `P2-vX.Y.Z.zip` from this repository’s [Releases](https://github.com/Yuuikic/pixiv-preview/releases) page and extract it to a permanent folder.
+1. Download the latest `P2-vX.Y.Z.zip` from the [Releases](https://github.com/Yuuikic/pixiv-preview/releases) page and extract it to a permanent folder.
 2. Open `chrome://extensions/` in Chrome.
-3. Enable **Developer mode** in the upper-right corner and click **Load unpacked**.
-4. Select the extracted folder containing `manifest.json`, not the ZIP file.
-5. Open or refresh a Pixiv page to start using P2.
+3. Turn on **Developer mode** in the upper-right corner, then click **Load unpacked**.
+4. Select the extracted folder that contains `manifest.json`.
+5. Open or refresh your Pixiv tabs to start previewing.
 
-**To update a local installation**, download and extract the new version, replace the contents of the original installation folder, click P2’s **Reload** button at `chrome://extensions/`, and refresh every open Pixiv tab. The current version is shown at the top of the settings page.
-
-Do not enable the Chrome Web Store and locally installed versions at the same time, as both copies may run on the same Pixiv page.
+**To update a local installation:** Download and extract the new release over your existing folder, click **Reload** on the P2 card at `chrome://extensions/`, and refresh your open tabs. Avoid enabling both the Chrome Web Store version and the local version at the same time to prevent duplicate previews.
 
 ## Get started
 
-1. **Preview:** Hover over an artwork thumbnail. A preview appears after 0.5 seconds by default.
-2. **Pin:** Press `S` or click the preview to keep it open. You can then hover over other artworks to open more windows.
-3. **Arrange and browse:** Drag the image or an empty area of the bottom bar to move the window. Scroll or drag an edge to resize it. Use the left and right buttons to browse multi-image works.
-4. **Close:** Click `×` in the bottom bar to close one window, or press `Esc` to temporarily hide them all.
+### Basic workflow
 
-Once pinned, a window also offers tools to bookmark the artwork or open its page in a new tab. In an unpinned preview, the first click in the tool area only pins the window; it does not activate a tool.
+When first installed, the settings page offers a three-step **Setup guide** with an interactive preview area where you can try hovering and pinning right away. You can reopen it anytime via the **Setup guide** button at the bottom of the settings page.
 
-### Controls at a glance
+1. **Hover to preview:** Rest your pointer on an artwork thumbnail (for 0.5 seconds by default) to open a floating preview.
+2. **Pin a preview:** Press `S` or click the preview window to keep it open on screen, then hover over other thumbnails to view multiple artworks side by side.
+3. **Move, resize, and flip pages:** Drag the image or an empty area of the bottom bar to move the window. Scroll inside a pinned window or drag its edges to resize proportionally. Use the bottom-bar arrows or `←` / `→` keys to flip through multi-page works.
+4. **Hide or close:** Click `×` in the bottom bar (or double-click a pinned window) to close it, or press `Esc` to hide all previews on the current page.
 
-These are the default shortcuts. They do not activate while you are typing in an input field.
+Once pinned, the bottom bar also provides buttons to **Bookmark artwork** (on Pixiv) and **Open artwork in a new tab**.
+
+### Controls and shortcuts at a glance
+
+All letter/number shortcuts below can be customized in settings (and are automatically ignored while typing in text fields):
 
 | Action | Result |
 | --- | --- |
-| Hover over a thumbnail | Show a preview; after leaving, it lingers for 0.5 seconds by default so you can move into it |
-| `S` | Pin the current hover preview; if there is none, unpin the topmost window |
-| `C` | Copy the topmost preview's artwork detail URL to the clipboard, without pinning first |
-| Click a window / its Pin control | Clicking the window pins it and brings it to the front; the Pin control toggles that window’s pinned state |
-| Drag the image or an empty area of the bottom bar | Move the window, automatically pinning it if needed |
-| Scroll inside a pinned window / drag its edges | Resize the window proportionally |
-| `←` / `→` or the page buttons | Browse images in the multi-image artwork in the active window |
-| Double-click the image or an empty area of a pinned window / click `×` | Close that window |
-| `Esc` | Hide all windows in the current tab; press again within 10 seconds to restore them, provided no new preview has appeared |
+| Hover over a thumbnail | Open the preview; when your pointer leaves, the window lingers for 0.5 seconds by default so you can easily move into it |
+| `S` | Pin the active hover preview; if there is no hover preview, unpin the topmost pinned window |
+| `C` | Copy the topmost preview's artwork detail URL to the clipboard (no need to pin first) |
+| Click preview / bottom-bar **Pin** button | Clicking the preview pins it and brings it to the front; the **Pin** button toggles its pinned state |
+| Drag image or bottom bar | Move the preview window (dragging an unpinned preview automatically pins it) |
+| Scroll wheel / drag window edges | Scroll inside a pinned window or drag its edges to resize proportionally |
+| `←` / `→` or bottom-bar page buttons | Flip to the previous or next image in a multi-page artwork |
+| Double-click pinned window / click `×` | Close that preview window |
+| `Esc` | Hide all preview windows in the current tab; press `Esc` again within 10 seconds to restore them (as long as no new preview was opened) |
+| `D` / `Shift+D` | Submit the current artwork / batch-submit all pinned artworks to Nazurin (requires Nazurin configuration) |
 
-After unpinning, the window closes according to the preview linger behavior. Each artwork can have only one window per tab. Navigating, going back, or going forward in the current tab closes previews; opening an artwork in a new tab leaves the current tab’s windows in place.
+### Customize settings
 
-### Settings
-
-Click P2 in the Chrome toolbar to open settings. The button in the upper-right corner of settings opens them in a separate tab.
+Click the P2 icon in the Chrome toolbar to open the settings popup, or click the button in the upper-right corner of the popup to open the full settings page in a new tab. Changes to general settings are saved and applied immediately:
 
 | Setting | Purpose and default |
 | --- | --- |
-| Hover delay | How long to hover before opening a preview; defaults to 500 ms. Increase it to reduce accidental previews |
-| Preview linger time | How long a preview stays after leaving its thumbnail; defaults to 500 ms. Increase it to make entering the window easier |
-| Detect artwork under preview | On by default, allowing switches to thumbnails covered by an unpinned preview. Turn it off to keep viewing the current artwork when entering its window |
-| Load original image | Off by default. When enabled, loads the original after the preview image, potentially using more time and data |
-| Auto-arrange pinned windows | Off by default. When enabled, automatically resizes and places windows in the empty space on either side of artwork thumbnails when pinned |
-| Keyboard shortcuts | Listed as pin, copy artwork link, and submit to Nazurin; defaults are `S`, `C`, and `D`. Use distinct letters or numbers to customize them |
-| Hide preview after successful Nazurin submission | Off by default; close the matching preview once Nazurin accepts its artwork link, whether submitted by shortcut or icon button |
+| **Hover delay** | How long to hover over a thumbnail before opening the preview (`500 ms` by default). Increase it to reduce accidental triggers |
+| **Preview linger time** | How long an unpinned preview stays open after your pointer leaves the thumbnail (`500 ms` by default). Increase it to make moving into the preview easier |
+| **Detect artwork under preview** | On by default. Lets you switch previews to other thumbnails covered by an unpinned preview; turn it off if you prefer moving into an unpinned preview without switching artworks |
+| **Load original image** | Off by default. When enabled, upgrades the preview to the full-resolution original image after the standard preview loads (uses more time and bandwidth) |
+| **Auto-arrange pinned previews** | Off by default. When enabled, pinning a preview with the keyboard shortcut automatically resizes and docks it into the open space beside the page's thumbnails |
+| **Keyboard shortcuts** | Customize the keys for **Pin / unpin** (`S`), **Copy artwork link** (`C`), and **Submit to Nazurin** (`D`) using any distinct letter or number |
+| **Close preview after Nazurin submission** | Off by default. Automatically closes the corresponding preview window once Nazurin accepts the artwork link |
 
-General settings save automatically and take effect immediately.
+## Multi-site support and website access
+
+Beyond Pixiv, P2 supports hover previews on major illustration boards as well as Nazurin link submission on Twitter/X and pixivision.
+
+### Site feature support
+
+| Site | Supported domains | Hover previews / pinned windows | Submit to Nazurin |
+| --- | --- | --- | --- |
+| **Pixiv** | [pixiv.net](https://www.pixiv.net/) | Yes | Yes |
+| **Danbooru** | [danbooru.donmai.us](https://danbooru.donmai.us/) | Yes | Yes |
+| **yande.re** | [yande.re](https://yande.re/) | Yes | Yes |
+| **Konachan** | [konachan.com](https://konachan.com/), [konachan.net](https://konachan.net/) | Yes | Yes |
+| **Zerochan** | [zerochan.net](https://www.zerochan.net/) | Yes | Yes |
+| **Twitter/X** | [x.com](https://x.com/), [twitter.com](https://twitter.com/) | No | Yes |
+| **pixivision** | [pixivision.net](https://www.pixivision.net/) | No | Yes (Pixiv artwork links in articles) |
+
+### Enabling additional websites
+
+Pixiv is enabled at installation. Other supported sites use optional permissions—**you can enable hover previews on Danbooru, yande.re, Konachan, and Zerochan even without connecting Nazurin**:
+
+- **Authorize from Settings:** Open the **Website access** section in P2 settings, click the sites you want to use (or click **Authorize all**), approve the browser prompt, and refresh your open tabs for those sites.
+- **Enable on the current tab:** While visiting a supported website, click the P2 toolbar icon, open the Nazurin / Website access section, and click **Enable on this website**, then refresh the tab.
+- **Disable anytime:** Click **Disable** next to any site under **Enabled websites** to turn off P2 on that site and release its optional browser permission. Pixiv's installation permission remains; a permission shared with your Nazurin server also remains until neither feature needs it.
+
+Once enabled, listing and search pages on supported image boards use the same hover preview, pinning, moving, resizing, and keyboard shortcuts as Pixiv.
 
 ## Optional: connect Nazurin
 
-If you have your own **[Nazurin](https://github.com/y-young/nazurin) service**, P2 can submit entire Pixiv artworks or links from other supported sites. Nazurin is not required for previews, page navigation, or pinned windows.
+If you run your own **[Nazurin](https://github.com/y-young/nazurin) service**, you can send artworks and tweets straight to your collection while browsing.
 
-1. Open P2 settings and expand **Nazurin**.
-2. Enter your service’s **API Host** and **Bot Token** (Telegram Bot Token). Remote services must use HTTPS. HTTP is allowed only for a local service on `localhost` or `127.0.0.1`.
-3. Click **Save** and grant access to that service address.
-4. Click **Test connection**. The Nazurin button and shortcuts become available only after a successful test. Test again after changing the configuration.
+### Connection settings
 
-| Action | Result |
+1. Open P2 settings and locate **Nazurin → Connection settings**.
+2. Enter your service's **API Host** and **Bot Token** (Telegram Bot Token). Remote servers must use `https://`; local servers for testing may use `http://localhost` or `http://127.0.0.1`.
+3. Click **Save** and approve the browser permission prompt for your server address.
+4. Click **Test connection**. Once the test succeeds, the Nazurin button and submission shortcuts are enabled (if you change the host or token later, save and test again).
+
+### Submitting artworks
+
+Once connected, you can submit works to Nazurin in several ways:
+
+| Action | Where and how it works |
 | --- | --- |
-| Click the Nazurin icon in a pinned window | Submit that artwork |
-| `D` | Submit the artwork in the topmost visible window, without needing to pin it first |
-| `Shift+D` | Submit artworks from all pinned windows in the current tab, one after another |
+| **Press `D`** (or your custom key) | **On listing pages:** Submit the hovered thumbnail, active preview window, or hovered tweet (works even before the delayed hover preview opens)<br>**On detail pages:** Press anywhere on an artwork or tweet detail page to submit the currently viewed work |
+| **Press `Shift+D`** | **Batch submission:** On preview-enabled sites, sequentially submit all currently pinned preview windows in the tab |
+| **Click the Nazurin icon** | Inside any pinned preview window, click the Nazurin icon in the bottom bar to submit that artwork |
 
-If you change the submission shortcut, use `Shift` with the new key for batch submission. Multi-image works are submitted as a whole, not just the displayed image. Artworks already queued or being submitted are not added again. You can retry failures manually; navigating in the current tab cancels submissions that have not started.
+**Tips for specific sites and workflows:**
+- **Multi-page artworks:** Submitting a multi-image work always submits the entire artwork, regardless of which page you are viewing in the preview.
+- **Twitter/X tweets:** Hover over a tweet card (text, media, or timestamp) and press `D` to submit its link. Retweets submit the original tweet, and quote tweets submit the outer tweet. On tweet detail pages or the photo viewer, pressing `D` submits the tweet shown in the address bar.
+- **pixivision articles:** On a pixivision feature article, hover over a featured illustration, its title, or its credit block and press `D` to submit the underlying Pixiv artwork link directly.
+- **Queueing and retries:** Rapid submissions are automatically queued in order, with status notifications shown in the preview bar or the bottom-right corner of the page. If a request fails due to a network issue, simply press the key or click the icon again to retry.
 
-The Nazurin host and Bot Token are stored only on this device. When you submit by button or keyboard, P2 sends only the canonical Pixiv artwork URL to that service; it does not send Pixiv cookies, login credentials, or image data. Saving the configuration requests access to that host. How Nazurin downloads, stores, and retains content depends on the user's own service configuration.
-
-**“Submitted to Nazurin” means the service accepted the request, not that the download is complete.** Nazurin handles downloading and saving. Check Telegram messages for the final result.
-
-### pixivision artwork shortcut
-
-On a pixivision article, hover an artwork image or its information area and press `D` to submit its Pixiv link to your configured Nazurin service. Save the configuration and pass the connection test first. If you customized the submission shortcut, use that key instead.
-
-This feature submits only the artwork link and does not show previews. Tracking parameters are removed. Rapid submissions are queued in order, and pending artworks are deduplicated. A toast shows the result; press the key again to retry a failure. Typing, modifier keys, and held keys do not trigger submission. `Shift+D` batch submission is not available here. After updating a locally loaded extension, reload it and refresh your open pixivision tabs.
-
-### Twitter/X tweet shortcut
-
-**This feature is experimental. Please do not rely on it too heavily. It may be removed in future versions, or it may be retained.**
-
-On `x.com` or `twitter.com`, hover a tweet's text, image, timestamp, or another part of its card and press `D` to submit its link to the same Nazurin service. If you customized the submission shortcut, use that key instead. Save your Nazurin configuration and pass the connection test first.
-
-This feature submits links without previewing or downloading images. Hovering a quote card submits the outer tweet; retweets submit the original tweet. Rapid submissions are queued in order, with duplicates suppressed while pending. A notification at the bottom right shows the result; press again to retry a failure. Typing, modified shortcuts, and held keys do not trigger submissions. `Shift+D` batch submission is available only on Pixiv.
-
-Links are normalized to `https://twitter.com/username/status/tweetID`, without tracking parameters or image numbers. Downloading depends on your Nazurin server's Twitter configuration. After updating, reload the extension at `chrome://extensions/` and refresh your open Twitter/X tabs.
-
-In Twitter/X's photo viewer (`/username/status/tweetID/photo/imageNumber`), the shortcut always submits the tweet identified by the address bar.
-
-### D shortcut on other Nazurin sites
-
-The following HTTPS pages use generic link submission. Both the source page and the submitted target must be on the fixed allowlist; this does not automatically support every Moebooru installation.
-
-| Site | Page domains |
-| --- | --- |
-| yande.re / Konachan / Lolibooru | `yande.re`, `konachan.com`, `konachan.net`, `lolibooru.moe`, and their `www` aliases |
-| Danbooru / Safebooru | `danbooru.donmai.us`, `safebooru.donmai.us`; not `safebooru.org` |
-| Zerochan / Gelbooru | `zerochan.net`, `gelbooru.com`, and their `www` aliases |
-| ArtStation / DeviantArt / Lofter | `artstation.com`, `deviantart.com`, `lofter.com`, and single-level user subdomains |
-| Wallhaven | `wallhaven.cc`, `www.wallhaven.cc`, `whvn.cc` |
-| Bilibili dynamics | `bilibili.com`, `www.bilibili.com`, `t.bilibili.com` |
-| Weibo | `weibo.com`, `weibo.cn`, their `www` and `m` aliases, and `share.api.weibo.cn` |
-| Kemono | `kemono.party`, `kemono.su`, `kemono.cr` |
-| Telegraph / Bluesky | `telegra.ph`, `graph.org`, `bsky.app` |
-
-After saving and testing your Nazurin configuration, press `D` (or your custom submission key):
-
-- **A recognized artwork detail page submits the current work first.** No particular hover target is required. Hovering the main image, empty space, or another recommended artwork link still submits the work currently being viewed.
-- **A listing selects the hovered artwork.** When the current page is not an artwork detail page, only a supported `<a href>` artwork link under the pointer is submitted, including its thumbnail. Without a valid work link, nothing is submitted and the key is not intercepted. Homepages, search results, and listings are never fallback targets.
-
-For example, hovering a thumbnail on `https://yande.re/post` and pressing `D` submits that work's link. On `https://yande.re/post/show/1270390`, pressing `D` over the unlinked `<img id="image">` submits work `1270390`. This follows the same current-work priority as X's photo viewer.
-
-Targets follow the artwork paths and required query parameters in Nazurin source snapshot `888af1e`, then normalize to stable HTTPS artwork links. Unrelated query parameters and fragments are removed; required parameters such as Gelbooru's `page`, `s`, and `id` are retained. Audited image/CDN anchor links are accepted: when a work ID is available, P2 submits its artwork page; hash-only Danbooru image links retain the server-supported image path. Standalone CDN pages do not receive the shortcut.
-
-Konachan `.net -> .com` conversion is always enabled, with no user setting. It changes only the submitted link, without navigating or modifying page links. Any previously saved conversion preference is ignored. Equivalent .net, .com, www, and tagged links deduplicate as the same pending work.
-
-P2 does not inspect image `src` values, JavaScript click handlers, or hidden data, and does not fetch previews or metadata. Listing cards with JavaScript-only navigation and no anchor may not be selectable. A supported URL shape does not guarantee that a work exists or that collection succeeds; check Nazurin/Telegram for the final result.
-
-Generic mode does not intercept shortcuts before Nazurin is configured and verified. Typing, composition, modifiers, and held keys do not trigger submission; `Shift+D` is not supported. Rapid submissions are serialized and duplicate pending/in-flight works are suppressed. Retry a failed item by pressing the key again. Leaving the page clears unsent work. The dedicated adapters on `www.pixiv.net`, the X main sites, and pixivision retain their existing rules. Generic scripts are not added to `pixiv.net`, `mobile.x.com`, or `mobile.twitter.com`; valid artwork links on these domains remain supported submission targets.
-
-Reload the extension and refresh open supported pages after updating. Chrome may ask you to approve access to the additional sites. These permissions support the user-triggered features above; they do not grant all-site content scripts or browsing-history access.
+> [!IMPORTANT]
+> **“Submitted to Nazurin” means your server has accepted the link, not that the download has finished.** Actual downloading and storage are handled by your Nazurin server—check your Telegram messages for the final result.
 
 ## Frequently asked questions
 
-1. **Why aren’t animations playing?**
+1. **Why don't Pixiv animations (Ugoira) play?**
+   Animated works currently display their static cover image in the preview window.
 
-   Pixiv animations currently display only a static cover image.
+2. **Why can't I preview certain artworks?**
+   Make sure your currently signed-in account has permission to view the work on the site (e.g., age-restricted, MyPixiv-only, deleted, or region-restricted works). P2 respects the site's access rules and does not bypass restrictions.
 
-2. **Why can’t I preview some artworks?**
+3. **Why is the bookmark button in the preview bar disabled?**
+   Pin the preview window first (`S` or click the window). In addition, native bookmarking is currently supported only on Pixiv and requires a matching bookmark button on the underlying page; if unavailable, you can open the artwork in a new tab to bookmark it.
 
-   Check that your current Pixiv account can view the artwork. P2 does not bypass private, deleted, regional, or account access restrictions. Changes to Pixiv pages or interfaces may also require an extension update.
+4. **Why didn't updating the extension or authorizing a site take effect?**
+   Refresh any open tabs for that website after authorizing or updating. For local Developer mode installations, click **Reload** at `chrome://extensions/` first, then refresh your tabs.
 
-3. **Why is the bookmark button unavailable?**
-
-   Pin the window first. If P2 cannot find the artwork’s corresponding bookmark button on the current page, the preview’s bookmark tool stays disabled. You can open the artwork page and bookmark it there.
-
-4. **Why do I still see the old behavior after updating?**
-
-   Reloading the extension also requires refreshing your open Pixiv pages. Check the version at the top of settings.
-
-5. **Why is the Nazurin button missing?**
-
-   Save the configuration, grant access, and pass the connection test. Test again after changing the configuration.
+5. **Why is the Nazurin button missing or pressing `D` doing nothing?**
+   Verify that you have clicked **Save** and passed **Test connection** in Nazurin settings. On sites other than Pixiv, also make sure the site is enabled under **Website access** and that you have refreshed the page.
 
 ## Privacy and license
 
-P2 runs on Pixiv, pixivision, Twitter/X, and the allowlisted sites above, collects no analytics, and sends no user data to the developer. The extension processes current Pixiv artwork information, selected or currently viewed artwork links, and settings on the device. Submissions send only the selected link, never cookies or image data. General settings may sync through Chrome; the Nazurin address and Token stay in local storage. Optional access to a Nazurin service is requested only when you configure it; clearing the configuration removes that optional permission, not the extension's fixed site permissions.
+P2 is designed with strict privacy boundaries:
+- **Zero telemetry:** P2 includes no analytics or tracking and never sends your browsing data to the developer.
+- **Least-privilege access:** Only Pixiv access is requested at installation. All other supported websites and your Nazurin server address use optional permissions granted only when you enable them, and released once neither website features nor the server needs them.
+- **Local credential storage:** While general display preferences may sync via Chrome, your Nazurin API Host and Bot Token are stored strictly in local storage on your device. When submitting to Nazurin, P2 sends only the canonical artwork URL—never your site cookies, login credentials, or image data.
 
-[Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+See also: [Privacy policy](PRIVACY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-For development and release instructions, see [DEVELOPMENT.md](DEVELOPMENT.md#english).
+For development setup, testing, and release packaging instructions, see [DEVELOPMENT.md](DEVELOPMENT.md#english).
 
 ## Acknowledgements
 
-- [Nazurin](https://github.com/y-young/nazurin): The artwork collection service this project depends on
-- [Nazurin Extension](https://github.com/y-young/nazurin-extension): Provided the icon used by the integration and served as a reference for its functional logic
+- [Nazurin](https://github.com/y-young/nazurin): The open-source artwork collection service integrated with this project
+- [Nazurin Extension](https://github.com/y-young/nazurin-extension): Provided the icon assets and interaction reference for the Nazurin integration

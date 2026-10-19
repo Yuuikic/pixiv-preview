@@ -22,18 +22,19 @@ test("uses English by default and for non-Chinese browser languages", () => {
 
 test("uses Chinese for simplified and traditional Chinese browser languages", () => {
   assert.equal(load("zh-CN").t("settingsTitle"), "P2 设置");
-  assert.equal(load("zh-TW").t("loadingPreview"), "正在加载预览图…");
+  assert.equal(load("zh-TW").t("settingsTitle"), "P2 設定");
+  assert.equal(load("zh-TW").t("loadingPreview"), "正在載入預覽圖…");
 });
 
 test("substitutes dynamic labels without evaluating markup", () => {
-  assert.equal(load("en").t("stickyTitle", { key: "Q" }), "Press Q to pin preview");
+  assert.equal(load("en").t("stickyTitle", { key: "Q" }), "Pin preview (Q)");
 });
 
 test("new clipboard and Nazurin settings have Chinese and English translations", () => {
   for (const language of ["en", "zh-CN", "zh-TW"]) {
     const i18n = load(language);
     for (const key of ["copyShortcut", "linkCopied", "linkCopyFailed", "nazurinAutoHide",
-      "nazurinAutoHideHint", "configureNazurinFirst", "nazurinShortcut", "nazurinUnsupportedUrl", "linkAlreadyQueued"]) {
+      "nazurinAutoHideHint", "configureNazurinFirst", "nazurinShortcut", "nazurinUnsupportedUrl", "previewBehavior", "setupTitle", "setupHint", "setupFinish", "setupRestart", "pixivDefaultReady", "setupSteps", "settingsNavigation", "siteSupportLink", "siteGrantHint", "siteEnableAll", "siteGranted", "siteNotGranted", "sitePartiallyGranted", "timingDemoTitle", "timingDemoHint", "timingDemoStickyHint"]) {
       assert.notEqual(i18n.t(key), key);
       assert.ok(language === "en" ? /[A-Za-z]/.test(i18n.t(key)) : /[\u4e00-\u9fff]/.test(i18n.t(key)));
     }

@@ -4,9 +4,12 @@
   const settings = globalThis.PixivPreviewSettings;
   const { t } = globalThis.P2I18n;
   globalThis.P2LinkSubmit = ({
-    resolveTarget, createMessage, duplicateKey, getTargetKey = (target) => target,
-    requireTrustedEvents = false
+    resolveTarget, createMessage, duplicateKey
   }) => {
+    const session = globalThis.P2SiteSession;
+    if (session && !session.claim("link-submit")) return;
+    const listen = (target, type, callback, options) => session ? session.listen(target, type, callback, options) :
+      target.addEventListener(type, callback, options);
     let shortcutCode = settings.DEFAULT_NAZURIN_SHORTCUT_CODE;
     let pointer = null;
     let active = true;
@@ -29,6 +32,8 @@
       toast?.remove();
       toast = null;
     }
+
+    session?.onStop(() => { runtimeValid = false; deactivate(); });
 
     function showToast(message, tone = "neutral") {
       clearTimeout(toastTimer);
@@ -96,31 +101,27 @@
       if (currentRevision === revision) processing = false;
     }
 
-    document.addEventListener("pointermove", (event) => {
-      if (requireTrustedEvents && !event.isTrusted) return;
+    listen(document, "pointermove", (event) => {
       pointer = { x: event.clientX, y: event.clientY };
     }, { capture: true, passive: true });
-    document.addEventListener("pointerover", (event) => {
-      if (requireTrustedEvents && !event.isTrusted) return;
+    listen(document, "pointerover", (event) => {
       pointer = { x: event.clientX, y: event.clientY };
     }, { capture: true, passive: true });
-    document.addEventListener("pointerout", (event) => {
-      if (requireTrustedEvents && !event.isTrusted) return;
+    listen(document, "pointerout", (event) => {
       if (!event.relatedTarget) pointer = null;
     }, true);
-    window.addEventListener("blur", () => { pointer = null; });
-    window.addEventListener("pagehide", deactivate);
-    window.addEventListener("pageshow", () => { active = runtimeValid; });
+    listen(window, "blur", () => { pointer = null; });
+    listen(window, "pagehide", deactivate);
+    listen(window, "pageshow", () => { active = runtimeValid; });
 
-    document.addEventListener("keydown", (event) => {
-      if (requireTrustedEvents && !event.isTrusted) return;
+    listen(document, "keydown", (event) => {
       if (!active || event.defaultPrevented || event.code !== shortcutCode || event.repeat ||
           event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.isComposing) return;
       if ([event.target, document.activeElement].some((element) =>
         element?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]'))) return;
       const target = resolveTarget(pointer);
       if (!target) return;
-      const key = getTargetKey(target);
+      const key = target;
       if (!key) return;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -143,12 +144,14 @@
       if (shortcutRevision === initialRevision) shortcutCode = settings.normalizeShortcutCode(
         stored[settings.NAZURIN_SHORTCUT_STORAGE_KEY], settings.DEFAULT_NAZURIN_SHORTCUT_CODE);
     }).catch(() => {});
-    chrome.storage.onChanged.addListener((changes, area) => {
+    const onStorageChanged = (changes, area) => {
       if (area === "sync" && changes[settings.NAZURIN_SHORTCUT_STORAGE_KEY]) {
         shortcutRevision += 1;
         shortcutCode = settings.normalizeShortcutCode(
           changes[settings.NAZURIN_SHORTCUT_STORAGE_KEY].newValue, settings.DEFAULT_NAZURIN_SHORTCUT_CODE);
       }
-    });
+    };
+    if (session) session.storageListener(onStorageChanged);
+    else chrome.storage.onChanged.addListener(onStorageChanged);
   };
 })();
