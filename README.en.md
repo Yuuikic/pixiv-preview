@@ -6,7 +6,7 @@
 
 <p align="center">A hover preview extension for Pixiv.</p>
 
-<p align="center"><a href="README.md">简体中文</a> · English</p>
+<p align="center"><a href="README.md">简体中文</a> · English · <a href="README.ja.md">日本語</a></p>
 
 **P2** is a Chrome extension for quickly previewing illustrations, with dedicated support for collecting images through [Nazurin](https://github.com/y-young/nazurin).
 

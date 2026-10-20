@@ -1,0 +1,5 @@
+{
+  "extensionName": { "message": "P2：Pixiv ホバープレビュー" },
+  "extensionDescription": { "message": "Pixiv などの作品をホバーでプレビューし、Nazurin へのワンキー送信にも対応したブラウザ拡張機能。" },
+  "actionTitle": { "message": "P2 設定" }
+}

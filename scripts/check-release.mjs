@@ -29,7 +29,7 @@ if (tagIndex >= 0) {
 
 const requiredFiles = [
   "LICENSE", "PRIVACY.md", "THIRD_PARTY_NOTICES.md",
-  "_locales/en/messages.json", "_locales/zh_CN/messages.json", "_locales/zh_TW/messages.json",
+  "_locales/en/messages.json", "_locales/zh_CN/messages.json", "_locales/zh_TW/messages.json", "_locales/ja/messages.json",
   "assets/icon-16.png", "assets/icon-32.png", "assets/icon-48.png", "assets/icon-128.png",
   "assets/icon.png", "assets/nazurin-48.png", "options/options.html", "options/timing-demo.js", "options/settings-motion.js", "popup/popup.html", "popup/popup.css",
   "popup/popup.js", "src/background.js", "src/content.js", "src/i18n.js",

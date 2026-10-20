@@ -409,11 +409,168 @@
     nazurinInvalidResponse: "Nazurin response is not recognized", nazurinSubmitFailed: "Nazurin submission failed"
   };
 
+  const ja = {
+    timingDemoTitle: "プレビューを試す",
+    timingDemoHint: "下のアイコンにカーソルを合わせてプレビューを体験",
+    timingDemoStickyHint: "{key} キーを押すかプレビューをクリックして固定",
+    previewBehavior: "プレビューの動作",
+    previewBehaviorHint: "ホバー遅延、残存時間、表示方法を調整します。変更は自動的に保存されます。",
+    nazurinOptionalHint: "任意設定です。自作サーバーに接続すると、作品単体または固定中の全作品を一括送信できます。未設定でもプレビューは利用できます。",
+    nazurinConnection: "接続設定",
+    pixivDefaultReady: "Pixiv は既定で有効です。プレビューを利用できます。",
+    pixivDefaultInactive: "Pixiv ページ機能は現在無効です。右側のボタンから再度有効化できます（権限が取り消されている場合は再許可が必要です）。",
+    pixivDisabled: "Pixiv ページ機能を無効にしました。インストール時の基本権限は保持されますが、ブラウザの拡張機能設定からサイトアクセスを管理できます。",
+    siteAddEnable: "許可して有効化",
+    setupSteps: "セットアップ手順",
+    settingsNavigation: "設定カテゴリ",
+    setupEyebrow: "初回利用 · クイック設定",
+    setupTitle: "P2 を自分のスタイルに合わせる",
+    setupHint: "プレビューの動作、ショートカット、任意の Nazurin 連携を 3 ステップで確認できます。初期設定のまま進めることも、いつでもスキップすることもできます。",
+    setupProgress: "ステップ {current} / {total}",
+    setupNext: "次へ",
+    setupBack: "戻る",
+    setupSkip: "ガイドをスキップ",
+    setupFinish: "設定を完了",
+    setupRestart: "セットアップガイド",
+    setupSaveFailed: "ガイドの進行状況を保存できませんでした。もう一度お試しください。",
+
+    siteAccessTitle: "サイトアクセス権",
+    siteAccessHint: "各サイトのプレビュー・送信機能の対応状況は",
+    siteSupportLink: "対応表",
+    siteSupportUrl: "https://github.com/Yuuikic/pixiv-preview/blob/main/README.ja.md#対応サイトと機能",
+    siteAccessDefaultHint: "をご覧ください。Pixiv は既定で有効になっており、他のサイトは必要に応じて許可できます。",
+    siteGrantHint: "上のサイトをクリックして対象ドメインを許可し、開いているタブを再読み込みすると反映されます。",
+    siteEnableAll: "すべて許可",
+    siteGranted: "許可済み",
+    siteNotGranted: "許可する",
+    sitePartiallyGranted: "一部許可",
+    enabledSitesTitle: "有効なサイト",
+    siteEnable: "このサイトで有効化",
+    siteAlreadyEnabled: "このサイトで有効",
+    siteDisable: "無効化",
+    siteAccessEmpty: "有効なサイトはまだありません。",
+    sitePermissionDenied: "権限が許可されなかったため、このサイトは有効化されませんでした。",
+    siteEnabledRefresh: "有効化しました。対象のページを再読み込みしてからご利用ください。",
+    siteDisabled: "無効化しました。このサイトでの P2 機能はオフになりました（同じドメインを Nazurin サーバーとして使用している場合、サーバー権限は保持されます）。",
+    siteAccessFailed: "サイトアクセス状態の更新に失敗しました。もう一度お試しください（すでに許可された権限は保持されます）。",
+
+    tweetAlreadyQueued: "このツイートはすでにキューにあります",
+    nazurinUnsupportedUrl: "対応している Nazurin 作品リンクではありません",
+    nazurinAutoHide: "送信成功後にプレビューを自動で閉じる",
+    nazurinAutoHideHint: "作品リンクが Nazurin に受理されたら、対応するプレビューを自動的に閉じます",
+    configureNazurinFirst: "先に Nazurin を設定してください",
+
+    settingsTitle: "P2 設定",
+    settingsEyebrow: "P2：PIXIV プレビュー",
+    openFullSettings: "新しいタブで詳細設定を開く",
+    hoverDelay: "ホバー遅延",
+    moreResponsive: "素早く表示",
+    fewerAccidents: "誤表示を防止",
+    hoverDelayHint: "サムネイルにカーソルを合わせてからプレビューが開くまでの時間です。",
+    residue: "プレビューの残存時間",
+    hideImmediately: "すぐに隠す",
+    easierEntry: "プレビューに移りやすい",
+    residueHint: "サムネイルからカーソルを離したあと、未固定のプレビューが開いたまま残る時間です。",
+    occluded: "プレビュー下の作品を認識",
+    occludedHint: "未固定のプレビューが他のサムネイルに重なっていても、下の作品のプレビューに切り替えられます",
+    original: "オリジナル画像を読み込む",
+    originalHint: "標準プレビューの表示後に高解像度の元画像を読み込んで置き換えます",
+    autoArrange: "固定したプレビューを自動整列",
+    autoArrangeHint: "ショートカットでプレビューを固定した際、自動的に縮小してサムネイルの両脇の余白に並べます",
+    copyShortcut: "作品ページのリンクをコピー",
+    linkCopied: "作品ページのリンクをコピーしました",
+    linkCopyFailed: "リンクをコピーできませんでした",
+    shortcuts: "ショートカットキー",
+    stickyShortcut: "固定／固定解除",
+    nazurinShortcut: "Nazurin に送信",
+    shortcutHint: "キー欄をクリックし、英字または数字キーを 1 つ押すと変更できます。プレビュー対応サイトでは Shift + 送信キーで固定中の全作品を一括送信できます。",
+    nazurinHint: "API Host と Bot Token はこの端末にのみ保存されます。送信時、P2 は作品リンクのみを送信し、Cookie や画像データは一切送信しません。保存時に接続先のアクセス権限を要求し、接続テストに成功すると利用可能になります。",
+    insecureHttp: "リモートの Nazurin サーバーには HTTPS が必須です。HTTP は localhost または 127.0.0.1 のみ対応しています。",
+    save: "保存",
+    testConnection: "接続テスト",
+    clear: "クリア",
+    resetDefaults: "初期設定に戻す",
+    saved: "保存しました",
+    saveFailed: "保存に失敗しました",
+    cannotSave: "保存できません",
+    restored: "初期設定に戻しました",
+    readFailed: "読み込みに失敗しました",
+    invalidHost: "完全な HTTPS URL（例: https://example.com）を入力してください。ローカル環境では http://localhost または http://127.0.0.1 を使用できます",
+    invalidToken: "Bot Token を空にすることはできません。また、空白や特殊文字（/ ? # & = %）は使用できません",
+    permissionDenied: "API Host へのアクセス権限が許可されませんでした",
+    configSavedNeedsTest: "設定を保存しました。接続テストを行って Nazurin を有効化してください",
+    configSavedOldPermissionFailed: "設定を保存しましたが、以前の Host 権限の削除に失敗しました",
+    configSaveFailed: "設定の保存に失敗しました",
+    hostChanged: "Host が変更されています。先に設定を保存してください",
+    tokenChanged: "Token が変更されています。先に設定を保存してください",
+    testing: "接続をテスト中…",
+    connectionSuccess: "接続に成功しました。Nazurin 機能が有効になりました",
+    backgroundUnavailable: "拡張機能のバックグラウンドに接続できません",
+    configCleared: "Nazurin の設定を消去しました",
+    clearFailed: "消去に失敗しました",
+    localStorageUnavailable: "ローカルストレージを利用できません",
+    nazurinReadFailed: "Nazurin 設定の読み込みに失敗しました",
+    shortcutConflict: "同じショートカットキーは設定できません",
+    pressShortcut: "キーを押す",
+    notConfigured: "Nazurin の設定が保存されていません",
+    notVerified: "先に設定画面で Nazurin の接続テストを行ってください",
+    permissionMissing: "この API Host へのアクセス権限がありません。もう一度保存してください",
+    timeout: "接続がタイムアウトしました",
+    networkError: "ネットワーク接続に失敗しました",
+    httpError: "サーバーが HTTP エラーを返しました",
+    apiError: "Nazurin がエラーを返しました",
+    invalidResponse: "サーバーの応答形式を認識できません",
+    operationFailed: "操作に失敗しました",
+    previewDialog: "作品プレビュー",
+    loadingPreview: "プレビューを読み込み中…",
+    readingArtwork: "作品情報を取得中…",
+    previewUnavailable: "この作品のプレビューを表示できません",
+    cannotGetArtwork: "この作品の画像を取得できません",
+    previewUnavailableStatus: "プレビュー不可",
+    usingThumbnail: "現在のサムネイルを表示中",
+    quickPreview: "標準プレビュー",
+    imageLoadFailed: "画像の読み込みに失敗しました。作品が削除または制限されている可能性があります",
+    imageAlt: "作品プレビュー",
+    originalPreview: "元画像プレビュー",
+    originalFailed: "元画像の読み込みに失敗したため、プレビュー表示を維持しています",
+    previousPage: "前のページ",
+    nextPage: "次のページ",
+    bookmark: "ブックマークに追加",
+    unbookmark: "ブックマークを解除",
+    bookmarkUnavailable: "このページでは作品のブックマークボタンが見つかりません",
+    openArtwork: "新しいタブで作品を開く",
+    sticky: "固定",
+    stuck: "固定中",
+    stickyTitle: "プレビューを固定（{key}）",
+    unstickTitle: "プレビューの固定を解除",
+    closeCurrent: "プレビューを閉じる",
+    nazurinIdle: "Nazurin に送信",
+    nazurinQueued: "Nazurin キューに追加済み",
+    nazurinSending: "Nazurin に送信中",
+    nazurinAccepted: "Nazurin に送信済み",
+    nazurinRetry: "送信失敗（クリックして再試行）",
+    alreadyQueued: "この作品はすでにキューにあります",
+    unsentOpenSettings: "未送信：P2 設定を確認してください",
+    openSettings: "P2 設定を確認してください",
+    statusSeparator: "；",
+    queueSummary: "送信済み {accepted}、失敗 {failed}、未送信 {skipped}",
+    submissionSuccess: "Nazurin に送信しました",
+    nazurinNotConfigured: "Nazurin が未設定です",
+    nazurinNotVerified: "Nazurin の接続が未確認です",
+    nazurinPermissionMissing: "Nazurin サーバーまたはこのサイトへのアクセス権限がありません",
+    nazurinTimeout: "Nazurin への接続がタイムアウトしました",
+    nazurinNetworkError: "Nazurin へのネットワーク接続に失敗しました",
+    nazurinHttpError: "Nazurin が HTTP エラーを返しました",
+    nazurinInvalidResponse: "Nazurin の応答を認識できません",
+    nazurinSubmitFailed: "Nazurin への送信に失敗しました"
+  };
+
   const language = globalThis.chrome?.i18n?.getUILanguage?.() || globalThis.navigator?.language || "en";
   const normalizedLanguage = language.toLowerCase().replace("_", "-");
   const isTraditionalChinese = /^zh-(?:tw|hk|mo|hant)\b/.test(normalizedLanguage);
   const isChinese = normalizedLanguage.startsWith("zh");
-  const messages = isTraditionalChinese ? zhTW : isChinese ? zh : en;
+  const isJapanese = /^ja\b/.test(normalizedLanguage);
+  const messages = isTraditionalChinese ? zhTW : isChinese ? zh : isJapanese ? ja : en;
   function t(key, replacements = {}) {
     let value = messages[key] || en[key] || key;
     for (const [name, replacement] of Object.entries(replacements)) {
@@ -422,7 +579,7 @@
     return value;
   }
   function localizeDocument(root = document) {
-    root.documentElement.lang = isTraditionalChinese ? "zh-TW" : isChinese ? "zh-CN" : "en";
+    root.documentElement.lang = isTraditionalChinese ? "zh-TW" : isChinese ? "zh-CN" : isJapanese ? "ja" : "en";
     for (const element of root.querySelectorAll("[data-i18n]")) {
       element.textContent = t(element.dataset.i18n);
       if (element.dataset.i18n === "siteSupportLink" && "href" in element) {
@@ -435,5 +592,5 @@
       element.setAttribute("aria-label", value);
     }
   }
-  globalThis.P2I18n = Object.freeze({ language, isChinese, t, localizeDocument });
+  globalThis.P2I18n = Object.freeze({ language, isChinese, isJapanese, t, localizeDocument });
 })();

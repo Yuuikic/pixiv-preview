@@ -6,7 +6,7 @@
 
 <p align="center">Pixiv 作品悬停预览扩展</p>
 
-<p align="center">简体中文 · <a href="README.en.md">English</a></p>
+<p align="center">简体中文 · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a></p>
 
 **P2** 是一款用于快速预览插画作品的 Chrome 扩展，特别支持使用 [Nazurin](https://github.com/y-young/nazurin) 收藏图片的工作流。
 
